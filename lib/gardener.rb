@@ -1,3 +1,19 @@
+# This class provides the gardener part of the Gardener,Garden,Seed natural design patern
+# 
+# The Gardener act as the client class for accessing and assessing the Garden ressources.
+# Its initialization occurs through the +Abundance.gardener+ class method.
+# Its instance methods are fourthfold, following the 4 states of the garden.
+# Like the 4 seasons northern hemisphere gardening cycles:
+# * seed = the setting of your command cycle
+# * grownth = the evolution of your command growing period
+# * harvest = the getting of your command results
+# * close = the closing and dying cycle
+# 
+# Author:: lp (mailto:lp@spiralix.org)
+# Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
+# 
+# :title:Gardener
+
 class Gardener
   require 'lib/toolshed'
   include Toolshed
