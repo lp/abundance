@@ -158,6 +158,9 @@ class Garden
     # Its instance resides in the +@garden_rows+ Gardener's instance variable.
     # Its real muscles are inaccessibles from instance method intervention,
     # because of its nature as a forked Ruby process.
+    # === Parameter
+    # * _rows_ = garden rows number, the number of concurent threads
+    # * _init_timeout_ = allow to pause execution to allow for larger garden rows to initialize
     # === Example
     #  rows = Rows.new(4,2) { grow_block }
     
