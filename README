@@ -26,13 +26,24 @@ approach on the same problem.  I hope it will inspire some of you to hack out so
 and hopefully, eventually this tool will become obsolete because Ruby will get concurency built in.
  
 So, the approach here is really simple, you require abundance in your program.
-Then ask the Abundance.gardener class method to build you a garden built with a garden patch block you provide as part of the invocation.
+Then ask the Abundance.gardener class method to build you a garden
+with a garden patch block you provide as part of the invocation.
 This garden patch block includes an initialization block, which may be empty,
 and the invocation of the Abundance.grow class method, the perpetual seed ready patch garden.
 It becomes the threaded looping object, growing concurently on garden patch row forks.
 
 The gardener objected is then available to seeds and harvest the multiple garden patch row forks,
 allowing you to cultivate parallel garden rows where your seeds sprout till fruitful harvest time comes.
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+Note that as of this first version of the library, there is no way to have two gardeners
+simultaneously in your program, they will just get to killing each other.
+
+Also, I choosed to use a funky language called Ruby for programming, It inspired
+me going into this crazy garden related namespace.  Sorry if anybody gets lost in it,
+but the intent was for me quite the opposite, as real concepts help me to remember abstract logic.
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -58,3 +69,4 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
+
