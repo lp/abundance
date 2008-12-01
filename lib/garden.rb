@@ -1,0 +1,156 @@
+class Garden
+  require 'lib/toolshed'
+  include Toolshed
+  
+  attr_reader :pid
+  
+  def initialize
+    @pid = fork do
+      @quit = false
+      @harvest = []
+      @rows_port = []
+      @seeds = []; @sprouts = []; @crops = []; @id = 0
+      @socket_server = Toolshed.socket_server(Toolshed::garden_port)
+      @socket_client_temp = Toolshed.socket_client_temp
+      loop do
+        catch :fill_rows do
+          loop do
+            if ! @seeds.empty? && ! @rows_port.empty?
+              seed = @seeds.shift
+              @sprouts[seed[:id]] = seed
+              row_port = @rows_port.shift
+              socket_client_temp(:sprout,seed,row_port)
+            elsif @quit && ! @rows_port.empty?
+              seed = nil
+              row_port = @rows_port.shift
+              socket_client_temp(:quit,seed,row_port)
+            else
+              throw :fill_rows
+            end               
+          end
+        end
+        command, data, clientport, clientname, clientaddr = socket_server_recv
+        case command
+        when :seed 
+          @id += 1; @seeds << {:id => @id , :seed => data}
+          socket_server_send(command,@id,clientaddr,clientport)
+        when :row
+          if @quit
+            command = :quit
+            seed = nil
+          elsif @seeds.empty?
+            seed = nil
+            @rows_port << data
+          else
+            seed = @seeds.shift
+            @sprouts[seed[:id]] = seed
+          end
+          socket_server_send(command,seed,clientaddr,clientport)  
+        when :crop 
+          @sprouts[data[:id]] = nil
+          @crops[data[:id]] = data; socket_server_send(command,true,clientaddr,clientport)
+          socket_server_send(command,data, @harvest[data[:id]][:clientaddr], @harvest[data[:id]][:clientport]) if @harvest[data[:id]] 
+        when :growth
+          case data
+          when :progress
+            progress = sprintf( "%.2f", @crops.size.to_f / (@crops.size + @sprouts.compact.size + @seeds.size))
+            socket_server_send(command,progress,clientaddr,clientport)
+          when :seed
+            socket_server_send(command,@seeds.size,clientaddr,clientport)
+          when :sprout
+            socket_server_send(command,@sprouts.compact.size,clientaddr,clientport)
+          when :crop
+            socket_server_send(command,@crops.size,clientaddr,clientport)
+          else
+            socket_server_send(command,false,clientaddr,clientport)
+          end
+        when :harvest
+          case data
+          when :all
+            socket_server_send(command,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops},clientaddr,clientport)
+          when :seed
+            socket_server_send(command,@seeds,clientaddr,clientport)
+          when :sprout
+            socket_server_send(command,@sprouts.compact,clientaddr,clientport)
+          when :crop
+            socket_server_send(command,@crops,clientaddr,clientport)
+          else
+            if data.is_a? Integer
+              if @crops[data]
+                socket_server_send(command,@crops[data],clientaddr,clientport)
+              else
+                @harvest[data] = {:clientaddr => clientaddr, :clientport => clientport}
+              end
+            else
+              socket_server_send(command,false,clientaddr,clientport)
+            end
+          end
+        when :close
+          if data[:level] == :garden
+            @seeds_pid = data[:pid]
+            @quit = true
+            @mem_addr = clientaddr; @mem_port = clientport
+          else
+            @seeds_pid.delete(data[:pid].to_i)
+            if @seeds_pid.empty?
+              socket_server_send(:close,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops}, @mem_addr, @mem_port)
+              exit
+            end
+          end
+        else
+          socket_server_send(command,false,clientaddr,clientport)
+        end
+      end
+    end
+    return pid
+  end
+  
+  def rows(rows,init_timeout,grow_block)
+    Rows.new(rows,init_timeout,grow_block)
+  end
+  
+  class Rows
+    include Toolshed
+    attr_reader :pids
+    
+    def initialize(rows,init_timeout,gardener_block)
+      @pids = []
+      rows.times do
+        row_port = Toolshed.available_port
+        @pids << fork do
+          @socket_server = Toolshed.socket_server(row_port)
+          t1 = Thread.new do
+            gardener_block.call
+          end
+
+          t2 = Thread.new do
+            @socket_client_perm = Toolshed.socket_client_perm
+            loop do
+              if $seed.nil?
+                command, data = socket_client_perm_duplex(:row,row_port)
+                if command == :quit
+                  pid = Process.pid
+                  socket_client_perm_send(:close,{:level => :seed, :pid => pid})
+                  exit
+                end
+                $seed = data
+                if $seed.nil?
+                  command, data, clientport, clientname, clientaddr = socket_server_recv
+                  $seed = data
+                end
+              elsif $seed.include?(:success)
+                command, data = socket_client_perm_duplex(:crop,$seed)
+                $seed = nil
+              else
+                t1.run
+              end
+
+            end
+          end
+          t2.join
+        end
+      end
+      sleep init_timeout
+    end
+  end
+end
