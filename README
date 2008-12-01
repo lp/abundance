@@ -1,0 +1,60 @@
+
+    .    .                 .                  
+   / \   |                 |                  
+  /___\  |.-. .  . .--. .-.| .-.  .--. .-..-. 
+ /     \ |   )|  | |  |(   |(   ) |  |(  (.-' 
+'       `'`-' `--`-'  `-`-'`-`-'`-'  `-`-'`--'
+               
+///////////////////////////////////////////////////////////////////////////////////////
+
+This class provides a mean to parallelize the execution of your program processes.
+
+Its caracteristics are:
+* concurent
+* non-blocking
+* simple
+* pure ruby
+
+Based on Gardener,Garden,Seed natural design patern
+
+While there should be no use for this kind of class in most programs, there are some occasions where processes
+cannot live inside serialized execution without blocking.  The built in threading model can save your execution in many occasions, but in many case green threading is not enough, or simply just won't work.
+For a nice explanation on the subject of ruby green threading, you can refer to: http://www.igvita.com/2008/11/13/concurrency-is-a-myth-in-ruby/
+
+Abundance is by no mean intended to equal or compete with the tools mentionned in the article, its rather a different
+approach on the same problem.  I hope it will inspire some of you to hack out something that works even better,
+and hopefully, eventually this tool will become obsolete because Ruby will get concurency built in.
+ 
+So, the approach here is really simple, you require abundance in your program.
+Then ask the Abundance.gardener class method to build you a garden built with a garden patch block you provide as part of the invocation.
+This garden patch block includes an initialization block, which may be empty,
+and the invocation of the Abundance.grow class method, the perpetual seed ready patch garden.
+It becomes the threaded looping object, growing concurently on garden patch row forks.
+
+The gardener objected is then available to seeds and harvest the multiple garden patch row forks,
+allowing you to cultivate parallel garden rows where your seeds sprout till fruitful harvest time comes.
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+Copyright (c) 2008 Louis-Philippe Perron
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
