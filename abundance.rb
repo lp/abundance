@@ -54,6 +54,16 @@ class Abundance
   #   end
   #  
   # end
+  # 
+  # id1 = gardener.seed('command1')
+  # id2 = gardener.seed('command2')
+  # 
+  # result1 = gardener.harvest(id1)
+  # result2 = gardener.harvest(id2)
+  # 
+  # # with many more seeds over here
+  # 
+  # gardener.close
   
   def Abundance.gardener(options={:seed_size => 8192, :rows => 2, :init_timeout => 2},&gardener_block)
     return Gardener.new(options,gardener_block)
