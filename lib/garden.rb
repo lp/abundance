@@ -1,4 +1,13 @@
-# This class provides the garden part of the Gardener,Garden,Seed natural design patern
+# These classes provides the garden part of the Gardener,Garden,Seed natural design patern
+# 
+# The Garden is where the thread concurency is implemented,
+# offering itself as a thread queue manager,
+# dispatching seeds from the Gardener to its Rows child class and back again.
+# it does so using its child class, the Rows.  Since Ruby doesn't implement Native Threads,
+# and only Native Threads scales to multi-core execution, the way to implement concurent execution is
+# through splitting the task at hand between multiple single threaded parallel executions.
+# The Rows system does exactly that, using the Ruby fork function, then connecting the isolated running
+# processes to the Garden, through a simple socket system provided by the Toolshed Module.
 # 
 # Author:: lp (mailto:lp@spiralix.org)
 # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
@@ -10,6 +19,15 @@ class Garden
   include Toolshed
   
   attr_reader :pid
+  
+  # The +new+ class method initializes the Garden.
+  # As part of the Abundance lib, Garden is not initialized directly, 
+  # but rather as a side effect of the Gardener's initialization.
+  # Its instance resides in the +@garden+ Gardener's instance variable.
+  # Its real muscles are inaccessibles from instance method intervention,
+  # because of its nature as a forked Ruby process.
+  # === Example
+  #  garden = Garden.new
   
   def initialize
     @pid = fork do
@@ -112,13 +130,36 @@ class Garden
     return pid
   end
   
+  # The +rows+ method for the Garden instance allow instantiation of its child Rows.
+  # As part of the Abundance lib, +Garden.rows+ is not invoked directly, 
+  # but rather as a side effect of the Gardener's initialization.
+  # Its in reality an indirect initializer for the Rows class.
+  # === Parameter
+  # * _rows_ = garden rows number, the number of concurent threads
+  # * _init_timeout_ = allow to pause execution to allow for larger garden rows to initialize
+  # === Example
+  #  rows = garden.rows(4,2) { grow_block }
+  # 
+  
   def rows(rows,init_timeout,grow_block)
     Rows.new(rows,init_timeout,grow_block)
   end
   
+  # :title:Rows
+  
   class Rows
     include Toolshed
     attr_reader :pids
+    
+    # The +new+ class method initializes the Rows.
+    # As part of the Abundance lib, Rows is not initialized directly, 
+    # but rather as a side effect of the Gardener's initialization,
+    # through the +rows+ Garden instance method.
+    # Its instance resides in the +@garden_rows+ Gardener's instance variable.
+    # Its real muscles are inaccessibles from instance method intervention,
+    # because of its nature as a forked Ruby process.
+    # === Example
+    #  rows = Rows.new(4,2) { grow_block }
     
     def initialize(rows,init_timeout,gardener_block)
       @pids = []
