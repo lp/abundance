@@ -22,7 +22,7 @@ class Gardener
   # As part of the Abundance lib, Gardener is not initialized directly, 
   # but rather through +Abundance.gardener+.
   # === Parameters
-  # * _:block_size_ = allowed seed size in bytes
+  # * _:seed_size_ = allowed seed size in bytes
   # * _:rows_ = garden rows number, the number of concurent threads
   # * _:init_timeout_ = allow to pause execution to allow for larger gardens to initialize
   # === Example
