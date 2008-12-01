@@ -1,3 +1,10 @@
+# This module provides a toolkit of helper methods to Abundance
+# 
+# Author:: lp (mailto:lp@spiralix.org)
+# Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
+# 
+# :title:Toolshed
+
 module Toolshed
   require 'socket'
   UDP_HOST = 'localhost'
