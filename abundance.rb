@@ -39,7 +39,7 @@ class Abundance
   # with its garden supplied as a block.  The invocation block must include
   # the +grow+ class method and a preceeding optional initialisation section.
   # === Parameters
-  # * _:block_size_ = allowed seed size in bytes
+  # * _:seed_size_ = allowed seed size in bytes
   # * _:rows_ = garden rows number, the number of concurent threads
   # * _:init_timeout_ = allow to pause execution to allow for larger gardens to initialize
   # === Example
@@ -61,7 +61,7 @@ class Abundance
   # result1 = gardener.harvest(id1)
   # result2 = gardener.harvest(id2)
   # 
-  # # with many more seeds over here
+  # with many more seeds over here
   # 
   # gardener.close
   
@@ -82,3 +82,4 @@ class Abundance
   end
   
 end
+
