@@ -5,6 +5,17 @@
 # * non-blocking
 # * simple
 # * pure ruby
+# * no dependency installation
+# 
+# It:
+# * scales to multi core
+# * is intended for batch processing or other parallel ready operations
+# * can boost you program's performance
+# 
+# And not:
+# * a replacement for Thread.new invocations
+# * a replacement for Thread friendly programming languages like Erlang
+# 
 # 
 # Based on Gardener,Garden,Seed natural design patern
 # 
