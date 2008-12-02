@@ -1,5 +1,10 @@
 # This module provides a toolkit of helper methods to Abundance
 # 
+# It uses the Socket Ruby standard library to provide a communication mechanism
+# between Abundance concurent processes.  It's used as both a namespace for init variables of 
+# the different Abundance Classes, using Toolshed's Class Method like qualified names,
+# and as mixins methods which access directly the instance variables of the client classes .
+# 
 # Author:: lp (mailto:lp@spiralix.org)
 # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
 # 
