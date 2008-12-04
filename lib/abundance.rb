@@ -42,9 +42,9 @@
 # :title:Abundance
 
 class Abundance
-  require 'lib/garden'
-  require 'lib/gardener'
-  require 'lib/seed'
+  require 'garden'
+  require 'gardener'
+  require 'seed'
   
   # The +gardener+ class method initializes a gardener instance
   # with its garden supplied as a block.  The invocation block must include

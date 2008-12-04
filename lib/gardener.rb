@@ -15,7 +15,7 @@
 # :title:Gardener
 
 class Gardener
-  require 'lib/toolshed'
+  require 'toolshed'
   include Toolshed
   
   # The +new+ class method initializes the class.

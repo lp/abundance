@@ -15,7 +15,7 @@
 # :title:Garden
 
 class Garden
-  require 'lib/toolshed'
+  require 'toolshed'
   include Toolshed
   
   attr_reader :pid
