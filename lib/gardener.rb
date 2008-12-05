@@ -1,11 +1,11 @@
 # This class provides the gardener part of the Gardener,Garden,Seed natural design patern
 # 
 # The Gardener act as the client class for accessing and assessing the Garden ressources.
-# Its initialization occurs through the +Abundance.gardener+ class method.
+# Its initialization occurs through the Abundance.gardener class method.
 # Its instance methods are fourthfold, following the 4 states of the garden.
 # Like the 4 seasons northern hemisphere gardening cycles:
 # * seed = the setting of your command cycle
-# * grownth = the evolution of your command growing period
+# * growth = the evolution of your command growing period
 # * harvest = the getting of your command results
 # * close = the closing and dying cycle
 # 
@@ -20,11 +20,11 @@ class Gardener
   
   # The +new+ class method initializes the class.
   # As part of the Abundance lib, Gardener is not initialized directly, 
-  # but rather through +Abundance.gardener+.
+  # but rather through Abundance.gardener.
   # === Parameters
-  # * _:seed_size_ = allowed seed size in bytes
-  # * _:rows_ = garden rows number, the number of concurent threads
-  # * _:init_timeout_ = allow to pause execution to allow for larger gardens to initialize
+  # * :seed_size = allowed seed size in bytes
+  # * :rows = garden rows number, the number of concurent threads
+  # * :init_timeout = allow to pause execution to allow for larger gardens to initialize
   # === Example
   #  gardener = Gardener.new({:seed_size => 1024, :rows => 6, :init_timeout}) { your_special_garden function }
   # 
@@ -53,10 +53,10 @@ class Gardener
   # The +growth+ method for the Gardener instance allow to get report of the growing process
   # === Parameter
   # The parameter given as a symbol specifies the level of growth report you wish to get:
-  # * _:progress_ = return actual progress status, scaled between 0.00 and 1.00
-  # * _:seed_ = return total seeds waiting to be processed
-  # * _:sprout_ = return total seeds actually in process
-  # * _:crop_ = return total seeds for which process has completed
+  # * :progress = return actual progress status, scaled between 0.00 and 1.00
+  # * :seed = return total seeds waiting to be processed
+  # * :sprout = return total seeds actually in process
+  # * :crop = return total seeds for which process has completed
   # === Example
   #  progress = gardener.growth(:progress)
   #  puts "progress is now #{progress}"  # => progress is now 0.75
@@ -66,14 +66,16 @@ class Gardener
     return data
   end
   
-  # The +harvest+ method for the Gardener instance allow to get arrays of results for each queue level
+  # The +harvest+ method for the Gardener instance allow to get arrays of results for each queue level.
+  # It has two different behaviour on queue data, one for ripe elements where it removes them from crop array ( on _seedID_ and :crop invocations ),
+  # for all other methods of invocation it leaves the queue intact.
   # === Parameter
   # The parameter given as a symbol specifies the level of queue results you wish to get:
-  # * _seedID_ = return the result for a specific seed, if seed hasn't processed it wait until completed
-  # * _:crop_ = return an array of seed for which process has completed
-  # * _:sprout_ = return an array of seed actually processing
-  # * _:seed_ = return an array of seed waiting to be processed
-  # * _:all_ = return a hash of respective arrays for crops, sprouts and seeds
+  # * seedID = return the result for a specific seed, if seed hasn't processed it wait until completed, _seedID_ is removed from crop array
+  # * :crop = return an array of seed for which process has completed, empties the crop array.
+  # * :sprout = return an array of seed actually processing
+  # * :seed = return an array of seed waiting to be processed
+  # * :all = return a hash of respective arrays for crops, sprouts and seeds
   # === Example
   #  seed1_result = gardener.harvest(id_seed_1)
   

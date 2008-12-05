@@ -50,11 +50,11 @@ class Abundance
   # with its garden supplied as a block.  The invocation block must include
   # the +grow+ class method and a preceeding optional initialisation section.
   # === Parameters
-  # * _:seed_size_ = allowed seed size in bytes
-  # * _:rows_ = garden rows number, the number of concurent threads
-  # * _:init_timeout_ = allow to pause execution to allow for larger gardens to initialize
+  # * :seed_size = allowed seed size in bytes
+  # * :rows = garden rows number, the number of concurent threads
+  # * :init_timeout = allow to pause execution to allow for larger gardens to initialize
   # === Example
-  # gardener = Abundance.gardener( :block_size => 8192, :rows => 2, :init_timeout => 2) do
+  #  gardener = Abundance.gardener( :block_size => 8192, :rows => 2, :init_timeout => 2) do
   # 
   #   processor = SpecialProcess.new
   # 
@@ -64,17 +64,17 @@ class Abundance
   #     seed.crop( true, results)  
   #   end
   #  
-  # end
+  #  end
   # 
-  # id1 = gardener.seed('command1')
-  # id2 = gardener.seed('command2')
+  #  id1 = gardener.seed('command1')
+  #  id2 = gardener.seed('command2')
   # 
-  # result1 = gardener.harvest(id1)
-  # result2 = gardener.harvest(id2)
+  #  result1 = gardener.harvest(id1)
+  #  result2 = gardener.harvest(id2)
   # 
-  # with many more seeds over here
+  #  # with many more seeds over here
   # 
-  # gardener.close
+  #  gardener.close
   
   def Abundance.gardener(options={:seed_size => 8192, :rows => 2, :init_timeout => 2},&gardener_block)
     return Gardener.new(options,gardener_block)

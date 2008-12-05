@@ -23,7 +23,7 @@ class Garden
   # The +new+ class method initializes the Garden.
   # As part of the Abundance lib, Garden is not initialized directly, 
   # but rather as a side effect of the Gardener's initialization.
-  # Its instance resides in the +@garden+ Gardener's instance variable.
+  # Its instance resides in the @garden Gardener's instance variable.
   # Its real muscles are inaccessibles from instance method intervention,
   # because of its nature as a forked Ruby process.
   # === Example
@@ -78,7 +78,8 @@ class Garden
         when :growth
           case data
           when :progress
-            progress = sprintf( "%.2f", @crops.size.to_f / (@crops.size + @sprouts.compact.size + @seeds.size))
+            value = @crops.size.to_f / (@crops.size + @sprouts.compact.size + @seeds.size)
+            value = 1 if value.nan?; progress = sprintf( "%.2f", value)
             socket_server_send(command,progress,clientaddr,clientport)
           when :seed
             socket_server_send(command,@seeds.size,clientaddr,clientport)
@@ -99,10 +100,12 @@ class Garden
             socket_server_send(command,@sprouts.compact,clientaddr,clientport)
           when :crop
             socket_server_send(command,@crops,clientaddr,clientport)
+            @crops.clear
           else
             if data.is_a? Integer
               if @crops[data]
                 socket_server_send(command,@crops[data],clientaddr,clientport)
+                @crops[data] = nil
               else
                 @harvest[data] = {:clientaddr => clientaddr, :clientport => clientport}
               end
@@ -131,7 +134,7 @@ class Garden
   end
   
   # The +rows+ method for the Garden instance allow instantiation of its child Rows.
-  # As part of the Abundance lib, +Garden.rows+ is not invoked directly, 
+  # As part of the Abundance lib, Garden.rows is not invoked directly, 
   # but rather as a side effect of the Gardener's initialization.
   # Its in reality an indirect initializer for the Rows class.
   # === Parameter
@@ -155,7 +158,7 @@ class Garden
     # As part of the Abundance lib, Rows is not initialized directly, 
     # but rather as a side effect of the Gardener's initialization,
     # through the +rows+ Garden instance method.
-    # Its instance resides in the +@garden_rows+ Gardener's instance variable.
+    # Its instance resides in the @garden_rows Gardener's instance variable.
     # Its real muscles are inaccessibles from instance method intervention,
     # because of its nature as a forked Ruby process.
     # === Parameter
