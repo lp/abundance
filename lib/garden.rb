@@ -93,13 +93,13 @@ class Garden
         when :harvest
           case data
           when :all
-            socket_server_send(command,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops},clientaddr,clientport)
+            socket_server_send(command,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact},clientaddr,clientport)
           when :seed
             socket_server_send(command,@seeds,clientaddr,clientport)
           when :sprout
             socket_server_send(command,@sprouts.compact,clientaddr,clientport)
           when :crop
-            socket_server_send(command,@crops,clientaddr,clientport)
+            socket_server_send(command,@crops.compact,clientaddr,clientport)
             @crops.clear
           else
             if data.is_a? Integer
