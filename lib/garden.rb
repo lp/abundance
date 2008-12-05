@@ -31,7 +31,7 @@ class Garden
   
   def initialize
     @pid = fork do
-      @quit = false
+      @quit = false; @full_crop = false
       @harvest = []
       @rows_port = []
       @seeds = []; @sprouts = []; @crops = []; @id = 0
@@ -77,6 +77,9 @@ class Garden
           if @harvest[data[:id]]
             socket_server_send(command,data, @harvest[data[:id]][:clientaddr], @harvest[data[:id]][:clientport]) 
             @crops[data[:id]] = @harvest[data[:id]] = nil
+          elsif @full_crop && @seeds.compact.empty? && @sprouts.compact.empty?
+            socket_server_send(command,@crops.compact,@mem_addr,@mem_port)
+            @crops.clear; @full_crop = false
           end
         when :growth
           case data
@@ -104,6 +107,14 @@ class Garden
           when :crop
             socket_server_send(command,@crops.compact,clientaddr,clientport)
             @crops.clear
+          when :full_crop
+            if @seeds.compact.empty? && @sprouts.compact.empty?
+              socket_server_send(command,@crops.compact,clientaddr,clientport)
+              @crops.clear
+            else
+              @full_crop = true
+              @mem_addr = clientaddr; @mem_port = clientport
+            end
           else
             if data.is_a? Integer
               if @crops[data]
