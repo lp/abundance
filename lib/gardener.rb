@@ -76,6 +76,7 @@ class Gardener
   # * :sprout = return an array of seed actually processing
   # * :seed = return an array of seed waiting to be processed
   # * :all = return a hash of respective arrays for crops, sprouts and seeds
+  # * :full_crop = wait for all seeds to be done processing, then returns as in :crop.
   # === Example
   #  seed1_result = gardener.harvest(id_seed_1)
   
