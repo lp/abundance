@@ -74,7 +74,10 @@ class Garden
         when :crop 
           @sprouts[data[:id]] = nil
           @crops[data[:id]] = data; socket_server_send(command,true,clientaddr,clientport)
-          socket_server_send(command,data, @harvest[data[:id]][:clientaddr], @harvest[data[:id]][:clientport]) if @harvest[data[:id]] 
+          if @harvest[data[:id]]
+            socket_server_send(command,data, @harvest[data[:id]][:clientaddr], @harvest[data[:id]][:clientport]) 
+            @crops[data[:id]] = @harvest[data[:id]] = nil
+          end
         when :growth
           case data
           when :progress
