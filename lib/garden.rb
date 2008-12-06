@@ -135,7 +135,7 @@ class Garden
           else
             @seeds_pid.delete(data[:pid].to_i)
             if @seeds_pid.empty?
-              socket_server_send(:close,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops}, @mem_addr, @mem_port)
+              socket_server_send(:close,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}, @mem_addr, @mem_port)
               exit
             end
           end
