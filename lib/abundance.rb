@@ -48,7 +48,7 @@ class Abundance
   
   # The +gardener+ class method initializes a gardener instance
   # with its garden supplied as a block.  The invocation block must include
-  # the +grow+ class method and a preceeding optional initialisation section.
+  # the +grow+ class method and a preceeding optional initialisation section that may include and +init_status+ return message.
   # === Parameters
   # * :seed_size = allowed seed size in bytes
   # * :rows = garden rows number, the number of concurent threads
@@ -57,6 +57,11 @@ class Abundance
   #  gardener = Abundance.gardener( :block_size => 8192, :rows => 2, :init_timeout => 2) do
   # 
   #   processor = SpecialProcess.new
+  #   if processor.started_successfully?
+  #     Abundance.init_status(true, processor.init_message)
+  #   else
+  #     Abundance.init_status(false, processor.init_message)
+  #   end
   # 
   #   Abundance.grow do |seed|
   #     command = seed.sprout 
@@ -92,8 +97,13 @@ class Abundance
     end
   end
   
-  # 
-  # 
+  # The +init_status+ class method can be used inside the gardener invocation to return an initialisation status message.
+  # The returned messages from all garden rows will then be accessible though the gardener's init_status instance method.
+  # === Parameters
+  # * _success_ = success of the initialisation, may be true or false
+  # * _message_ = a ruby expression or object
+  # === Example
+  #   Abundance.init_status(true,'Initialisation Successfull!!!')
   def Abundance.init_status(success,message)
     $seed = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
   end

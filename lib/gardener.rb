@@ -2,12 +2,13 @@
 # 
 # The Gardener act as the client class for accessing and assessing the Garden ressources.
 # Its initialization occurs through the Abundance.gardener class method.
-# Its instance methods are fourthfold, following the 4 states of the garden.
-# Like the 4 seasons northern hemisphere gardening cycles:
-# * seed = the setting of your command cycle
+# 
+# The Gardener's instance methods are:
+# * init_status = the return message for the initialisation cycle, as set by the Abundance.init_status method.
+# * seed = the setting of your command
 # * growth = the evolution of your command growing period
 # * harvest = the getting of your command results
-# * close = the closing and dying cycle
+# * close = wrap everything up and does a legit close
 # 
 # Author:: lp (mailto:lp@spiralix.org)
 # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
@@ -39,13 +40,16 @@ class Gardener
     @socket_client_perm = Toolshed.socket_client_perm
   end
   
-  # 
-  # 
+  # The +init_status+ method for the Gardener instance allow to harvest an initialisation status message
+  # that would have been set by the Abundance.init_status method, inside the Abundance.gardener's block. 
+  # It returns an array of hash, one hash for each garden rows.
+  # === Example
+  #   puts gardener.init_status.inspect   # => [{:message=>"init ok", :success=>true, :pid=>4760}, {:message=>"init failed", :success=>false, :pid=>4761}] 
   def init_status
     status = []
     @garden_rows.pids.each do |pid|
       command, data = socket_client_perm_duplex(:harvest,pid)
-      status << data
+      status << {:success => data[:success], :message => data[:message], :pid => data[:id]}
     end
     return status
   end
