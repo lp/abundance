@@ -39,6 +39,17 @@ class Gardener
     @socket_client_perm = Toolshed.socket_client_perm
   end
   
+  # 
+  # 
+  def init_status
+    status = []
+    @garden_rows.pids.each do |pid|
+      command, data = socket_client_perm_duplex(:harvest,pid)
+      status << data
+    end
+    return status
+  end
+  
   # The +seed+ method for the Gardener instance allow to sow a command in the Gardener's Garden.
   # === Parameter
   # * _command_ = a ruby expression or object
