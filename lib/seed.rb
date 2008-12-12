@@ -18,8 +18,8 @@ class Seed
 
   # 
   # 
-  def Seed.init_status(pid,success,message)
-    $seed = {:id => pid, :seed => 'init_status', :success => success, :message => message}
+  def Seed.init_status(success,message)
+    $seed = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
   end
   
   # The +sprout+ method for the Seed instance allow to get the passed command 
