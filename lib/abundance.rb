@@ -92,5 +92,11 @@ class Abundance
     end
   end
   
+  # 
+  # 
+  def Abundance.init_status(success,message)
+    $seed = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
+  end
+  
 end
 

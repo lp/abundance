@@ -15,12 +15,6 @@ class Seed
   # The +new+ class method initializes the class.
   # You don't have to initialize it inside of Abundance,
   # as it gets initialized automatically inside the +Abundance.grow+ method
-
-  # 
-  # 
-  def Seed.init_status(success,message)
-    $seed = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
-  end
   
   # The +sprout+ method for the Seed instance allow to get the passed command 
   # from the inside the Abundance.grow block.
