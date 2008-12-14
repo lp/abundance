@@ -48,7 +48,7 @@ class Gardener
   def init_status
     status = []
     @garden_rows.pids.each do |pid|
-      command, data = socket_client_perm_duplex(:harvest,pid)
+      command, data = socket_client_perm_duplex(:init,pid)
       status << {:success => data[:success], :message => data[:message], :pid => data[:id]}
     end
     return status
