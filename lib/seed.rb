@@ -11,7 +11,6 @@
 # :title:Seed
 
 class Seed
-  $seed = Hash.new
   # The +new+ class method initializes the class.
   # You don't have to initialize it inside of Abundance,
   # as it gets initialized automatically inside the +Abundance.grow+ method
