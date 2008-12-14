@@ -90,7 +90,7 @@ class Abundance
   
   def Abundance.grow(&grow_block)
     loop do
-      unless $seed.nil? || $seed.include?(:message) 
+      unless $seed.nil? || $seed.include?(:message)
         grow_block.call(Seed.new)
       end
       Thread.stop
