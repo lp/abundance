@@ -4,7 +4,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name = 'abundance'
-  s.version = '1.0.6'
+  s.version = '1.0.7'
   s.author = 'Louis-Philippe Perron'
   s.email = 'lp@spiralix.org'
   s.homepage = 'http://abundance.rubyforge.org/'
