@@ -65,6 +65,12 @@ class Gardener
     return data
   end
   
+  def seed_all(command)
+    seed = [@garden_rows.pids.size, command]
+    command, data = socket_client_perm_duplex(:seed_all, seed)
+    return data
+  end
+  
   # The +growth+ method for the Gardener instance allow to get report of the growing process
   # === Parameter
   # The parameter given as a symbol specifies the level of growth report you wish to get:
