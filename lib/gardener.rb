@@ -58,16 +58,26 @@ class Gardener
   # === Parameter
   # * _command_ = a ruby expression or object
   # === Example
-  #  id_seed_1 = gardener.seed(system 'ruby -v')
+  #  id_seed_1 = gardener.seed("system 'ruby -v'")
   
   def seed(command)
     command, data = socket_client_perm_duplex(:seed,command)
     return data
   end
   
+  # The +seed_all+ method allow to send a command to all row processes, usefull for a parameter change
+  # that needs to affect the prefered behaviour of all row.  It returns an array containing hashes for each rows results.
+  # === Parameter
+  # * _command_ = a ruby expression or object
+  # === Example
+  #   result = gardener.seed("pref local")  # =>  [{:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14915},
+  #                                               {:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14913}]
   def seed_all(command)
     seed = [@garden_rows.pids.size, command]
     command, data = socket_client_perm_duplex(:seed_all, seed)
+    data.map! do |row|
+      {:success => row[:success], :message => row[:message], :pid => row[:id]}
+    end
     return data
   end
   
