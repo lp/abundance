@@ -105,7 +105,7 @@ class Abundance
   # === Example
   #   Abundance.init_status(true,'Initialisation Successfull!!!')
   def Abundance.init_status(success,message)
-    $seed = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
+    $init = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
   end
   
 end
