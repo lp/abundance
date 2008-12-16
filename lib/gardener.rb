@@ -46,12 +46,11 @@ class Gardener
   # === Example
   #   puts gardener.init_status.inspect   # => [{:message=>"init ok", :success=>true, :pid=>4760}, {:message=>"init failed", :success=>false, :pid=>4761}] 
   def init_status
-    status = []
-    @garden_rows.pids.each do |pid|
-      command, data = socket_client_perm_duplex(:init,pid)
-      status << {:success => data[:success], :message => data[:message], :pid => data[:id]}
+    command, data = socket_client_perm_duplex(:init,@garden_rows.pids.size)
+    data.map! do |row|
+      {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
-    return status
+    return data
   end
   
   # The +seed+ method for the Gardener instance allow to sow a command in the Gardener's Garden.
