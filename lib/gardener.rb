@@ -69,7 +69,7 @@ class Gardener
   # === Parameter
   # * _command_ = a ruby expression or object
   # === Example
-  #   result = gardener.seed("pref local")  # =>  [{:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14915},
+  #   result = gardener.seed_all("pref local")  # =>  [{:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14915},
   #                                               {:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14913}]
   def seed_all(command)
     seed = [@garden_rows.pids.size, command]
