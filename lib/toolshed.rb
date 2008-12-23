@@ -16,6 +16,7 @@ module Toolshed
   @@start_port = 50000
   @@sessions = []
   
+  # The Toolshed.available_port method scans for a an available UDP port and returns its value.
   def Toolshed.available_port
     port = @@start_port + 1
     catch :scan_port do
@@ -35,40 +36,46 @@ module Toolshed
     return port
   end
   
+  # The Toolshed.socket_client_perm method creates a client socket permanently connected to the main server socket.  Returns the client socket object.
   def Toolshed.socket_client_perm
     socket = UDPSocket.new
     socket.connect(UDP_HOST,@@garden_port)
     return socket
   end
   
+  # The Toolshed.socket_client_temp method creates a client socket available for changing connections to multiple socket servers. Returns the client socket object.
   def Toolshed.socket_client_temp
     UDPSocket.new
   end
   
+  # The Toolshed.socket_server method creates a permanent main server socket.  Returns the server socket object.
   def Toolshed.socket_server(port)
     socket_server = UDPSocket.new
     socket_server.bind(nil,port)
     return socket_server
   end
   
+  # The Toolshed::block_size= method sets the UDP block size for socket operations.
   def Toolshed::block_size=(block_size)
     @@block_size = block_size
   end
   
+  # The Toolshed::block_size method gets and returns the UDP block size for socket operations.
   def Toolshed::block_size
     @@block_size
   end
   
+  # The Toolshed::garden_port= sets the UDP socket port for the garden server.
   def Toolshed::garden_port=(garden_port)
     @@garden_port = garden_port
   end
   
+  # The Toolshed::garden_port gets the UDP socket port of the garden server.
   def Toolshed::garden_port
     @@garden_port
   end
   
-  # main Row loop send receive
-  # and gardener all send receive
+  # The +socket_client_perm_duplex+ method is used as the main Row loop send/receive method and for all gardener's send/receive
   def socket_client_perm_duplex(command,data)
     block_splitter([command,data]) do |block|
       @socket_client_perm.send(block,0)
@@ -83,7 +90,7 @@ module Toolshed
     end
   end
   
-  # Garden to Rows, quick message
+  # The +socket_client_temp+ method is used by the Garden for connecting with the Row idle socket for quick messages. 
   def socket_client_temp(command,data,port)
     @socket_client_temp.connect(UDP_HOST,port)
     block_splitter([command,data]) do |block|
@@ -91,8 +98,7 @@ module Toolshed
     end
   end
   
-  # Garden main receive
-  # and Rows Idle receive
+  # The +socket_server_recv+ method is used by the Garden permanent socket and by the Row idle socket to wait for incomming messages.
   def socket_server_recv
     block,address = block_filter { @socket_server.recvfrom(@@block_size) }
     clientport = address[1]; clientname = address[2]; clientaddr = address[3] 
@@ -100,13 +106,15 @@ module Toolshed
     return command, data, clientport, clientname, clientaddr
   end
   
-  # Garden main send
+  # The +socket_server_send+ method is used by the Garden to answer back to socket clients.
   def socket_server_send(command,data,clientaddr,clientport)
     block_splitter([command,data]) do |block|
       @socket_server.send(block, 0, clientaddr, clientport)
     end
   end
   
+  private 
+  # The +block_splitter+ method is used internally by the Toolshed method to split message into acceptable UDP block size.  Its operating as a block method, sending a message chunk on each iteration.
   def block_splitter(data)
     data_string = Marshal.dump(data)
     if data_string.size >= @@block_size
@@ -121,6 +129,7 @@ module Toolshed
     end
   end
   
+  # The +block_filter+ method is used internally by the Toolshed method to filter splitted messages blocks, buffering them until the full message can be reconstructed.
   def block_filter
     loop do
       block,address = yield
