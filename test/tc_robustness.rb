@@ -9,9 +9,8 @@ class TestHighAPI < Test::Unit::TestCase
     @rows = 8
     @init_timeout = 3
     hyper_gardener
-    seed_10000
+    seed_3000
     seed_1000x10
-    seed_10000
   end
   
   def teardown
@@ -20,9 +19,9 @@ class TestHighAPI < Test::Unit::TestCase
 
   private
   
-  def seed_10000
+  def seed_3000
     seed = {:jo => 'ker', :lo => 'ver'}
-    1000.times do
+    3000.times do
       @g.seed(seed)
     end
     crop = @g.harvest(:full_crop)
@@ -30,7 +29,7 @@ class TestHighAPI < Test::Unit::TestCase
   end
   
   def seed_1000x10
-    (1..600).each do |num1|
+    (1..1000).each do |num1|
       (1..10).each do |num2|
         @g.seed([num1,num2])
       end
@@ -49,7 +48,7 @@ class TestHighAPI < Test::Unit::TestCase
   end
 
   def hyper_gardener
-    @g = Abundance.gardener(:seed_size => @seed_size, :rows => @rows, :init_timeout => @init_timeout) do
+    @g = Abundance.gardener(:wheelbarrow => @seed_size, :rows => @rows, :init_timeout => @init_timeout) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|
         sprout = seed.sprout

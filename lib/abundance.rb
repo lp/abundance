@@ -50,7 +50,7 @@ class Abundance
   # with its garden supplied as a block.  The invocation block must include
   # the +grow+ class method and a preceeding optional initialisation section that may include and +init_status+ return message.
   # === Parameters
-  # * :seed_size = allowed seed size in bytes
+  # * :wheelbarrow = the socket size for the garden communication packets, in bytes, range from 1024 to 8192, defaults to 8192
   # * :rows = garden rows number, the number of concurent threads
   # * :init_timeout = allow to pause execution to allow for larger gardens to initialize
   # === Example
@@ -81,7 +81,7 @@ class Abundance
   # 
   #  gardener.close
   
-  def Abundance.gardener(options={:seed_size => 8192, :rows => 2, :init_timeout => 2},&gardener_block)
+  def Abundance.gardener(options={:wheelbarrow => 8192, :rows => 2, :init_timeout => 2},&gardener_block)
     return Gardener.new(options,gardener_block)
   end
   
