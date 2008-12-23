@@ -220,8 +220,8 @@ class Garden
       @pids = []
       rows.times do
         row_port = Toolshed.available_port
-        @socket_client_perm = Toolshed.socket_client_perm
         @pids << fork do
+          @socket_client_perm = Toolshed.socket_client_perm
           @seed_all = false
           @socket_server = Toolshed.socket_server(row_port)
           t1 = Thread.new do

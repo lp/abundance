@@ -14,6 +14,7 @@ module Toolshed
   require 'socket'
   UDP_HOST = 'localhost'
   @@start_port = 50000
+  @@sessions = []
   
   def Toolshed.available_port
     port = @@start_port + 1
@@ -66,30 +67,82 @@ module Toolshed
     @@garden_port
   end
   
+  # main Row loop send receive
+  # and gardener all send receive
   def socket_client_perm_duplex(command,data)
-    @socket_client_perm.send(Marshal.dump([command,data]),0)
-    recv_block,address = @socket_client_perm.recvfrom(@@block_size)
+    block_splitter([command,data]) do |block|
+      @socket_client_perm.send(block,0)
+    end
+    recv_block,address = block_filter { @socket_client_perm.recvfrom(@@block_size) }
     return Marshal.load(recv_block)
   end
   
   def socket_client_perm_send(command,data)
-    @socket_client_perm.send(Marshal.dump([command,data]),0)
+    block_splitter([command,data]) do |block|
+      @socket_client_perm.send(block,0)
+    end
   end
   
+  # Garden to Rows, quick message
   def socket_client_temp(command,data,port)
     @socket_client_temp.connect(UDP_HOST,port)
-    @socket_client_temp.send(Marshal.dump([command,data]),0)
+    block_splitter([command,data]) do |block|
+      @socket_client_temp.send(block,0)
+    end
   end
   
+  # Garden main receive
+  # and Rows Idle receive
   def socket_server_recv
-    block,address = @socket_server.recvfrom(@@block_size)
+    block,address = block_filter { @socket_server.recvfrom(@@block_size) }
     clientport = address[1]; clientname = address[2]; clientaddr = address[3] 
     command, data = Marshal.load(block)
     return command, data, clientport, clientname, clientaddr
   end
   
+  # Garden main send
   def socket_server_send(command,data,clientaddr,clientport)
-    @socket_server.send(Marshal.dump([command,data]), 0, clientaddr, clientport)
+    block_splitter([command,data]) do |block|
+      @socket_server.send(block, 0, clientaddr, clientport)
+    end
+  end
+  
+  def block_splitter(data)
+    data_string = Marshal.dump(data)
+    if data_string.size >= @@block_size
+      parts = data_string.size / (@@block_size - @@block_size/32) + 1
+      yield Marshal.dump([:block_head,Process.pid,parts])
+      parts.times do |num|
+        part = [data_string[0,@@block_size - @@block_size/32]]; data_string[0,@@block_size - @@block_size/32] = ''
+        yield Marshal.dump([:block_part,Process.pid,num, part])
+      end
+    else
+      yield data_string
+    end
+  end
+  
+  def block_filter
+    loop do
+      block,address = yield
+      block_array = Marshal.load(block)
+      if block_array[0] == :block_head
+        @@sessions[block_array[1]] = {} if @@sessions[block_array[1]].nil?
+        @@sessions[block_array[1]][:size] = block_array[2]
+        @@sessions[block_array[1]][:address] = address
+      elsif block_array[0] == :block_part
+        @@sessions[block_array[1]] = {} if @@sessions[block_array[1]].nil?
+        @@sessions[block_array[1]][:data] = [] if @@sessions[block_array[1]][:data].nil?
+        @@sessions[block_array[1]][:data][block_array[2]] = block_array[3]
+      else
+        return block,address
+      end
+      if ! @@sessions[block_array[1]].nil? && ! @@sessions[block_array[1]][:data].nil? && @@sessions[block_array[1]][:data].size == @@sessions[block_array[1]][:size]
+        block = @@sessions[block_array[1]][:data].join
+        address = @@sessions[block_array[1]][:address]
+        @@sessions[block_array[1]] = nil
+        return block,address
+      end
+    end
   end
   
 end
