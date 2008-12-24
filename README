@@ -7,13 +7,15 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 
 This class provides a mean to parallelize the execution of your program processes.
+It is a process queue, named the Garden, with concurrent workers, named Rows, all this getting orchestrated by a Gardener.
 
-Its caracteristics are:
-* concurent
+
+Its characteristics are:
+* concurrent
 * non-blocking
 * simple
 * pure ruby
-* no dependency installation
+* serialization friendly 
 
 It:
 * scales to multi core
@@ -25,22 +27,22 @@ And not:
 * a replacement for Thread friendly programming languages like Erlang
 
 
-Based on Gardener,Garden,Seed natural design patern
+Based on Gardener,Garden,Seed natural design pattern
 
 While there should be no use for this kind of class in most programs, there are some occasions where processes
 cannot live inside serialized execution without blocking.  The built in threading model can save your execution in many occasions, but in many case green threading is not enough, or simply just won't work.
 For a nice explanation on the subject of ruby green threading, you can refer to: http://www.igvita.com/2008/11/13/concurrency-is-a-myth-in-ruby/
 
-Abundance is by no mean intended to equal or compete with the tools mentionned in the article, its rather a different
+Abundance is by no mean intended to equal or compete with the tools mentioned in the article, its rather a different
 approach on the same problem.  I hope it will inspire some of you to hack out something that works even better,
-and hopefully, eventually this tool will become obsolete because Ruby will get concurency built in.
+and hopefully, eventually this tool will become obsolete because Ruby will get concurrency built in.
  
 So, the approach here is really simple, you require abundance in your program.
 Then ask the Abundance.gardener class method to build you a garden
 with a garden patch block you provide as part of the invocation.
 This garden patch block includes an initialization block, which may be empty,
 and the invocation of the Abundance.grow class method, the perpetual seed ready patch garden.
-It becomes the threaded looping object, growing concurently on garden patch row forks.
+It becomes the threaded looping object, growing concurrently on garden patch row forks.
 
 The gardener objected is then available to seeds and harvest the multiple garden patch row forks,
 allowing you to cultivate parallel garden rows where your seeds sprout till fruitful harvest time comes.
@@ -50,7 +52,7 @@ allowing you to cultivate parallel garden rows where your seeds sprout till frui
 Note that as of this first version of the library, there is no way to have two gardeners
 simultaneously in your program, they will just get to killing each other.
 
-Also, I choosed to use a funky language called Ruby for programming, It inspired
+Also, I choose to use a funky language called Ruby for programming, It inspired
 me going into this crazy garden related namespace.  Sorry if anybody gets lost in it,
 but the intent was for me quite the opposite, as real concepts help me to remember abstract logic.
 

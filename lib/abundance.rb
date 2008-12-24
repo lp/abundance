@@ -1,11 +1,12 @@
 # This class provides a mean to parallelize the execution of your program processes.
+# It is a process queue, named the Garden, with concurrent workers, named Rows, all this getting orchestrated by a Gardener.
 # 
-# Its caracteristics are:
-# * concurent
+# Its characteristics are:
+# * concurrent
 # * non-blocking
 # * simple
 # * pure ruby
-# * no dependency installation
+# * serialization friendly 
 # 
 # It:
 # * scales to multi core
