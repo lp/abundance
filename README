@@ -49,6 +49,36 @@ allowing you to cultivate parallel garden rows where your seeds sprout till frui
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+Example:
+ gardener = Abundance.gardener( :wheelbarrow => 8192, :rows => 2, :init_timeout => 2) do
+
+  processor = SpecialProcess.new
+  if processor.started_successfully?
+    Abundance.init_status(true, processor.init_message)
+  else
+    Abundance.init_status(false, processor.init_message)
+  end
+
+  Abundance.grow do |seed|
+    command = seed.sprout 
+    results = processor.parse(command) 
+    seed.crop( true, results)  
+  end
+ 
+ end
+
+ id1 = gardener.seed('command1')
+ id2 = gardener.seed('command2')
+
+ result1 = gardener.harvest(id1)
+ result2 = gardener.harvest(id2)
+
+ # with many more seeds over here
+
+ gardener.close
+
+///////////////////////////////////////////////////////////////////////////////////////
+
 Note that as of this first version of the library, there is no way to have two gardeners
 simultaneously in your program, they will just get to killing each other.
 
