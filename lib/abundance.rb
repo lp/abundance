@@ -55,7 +55,7 @@ class Abundance
   # * :rows = garden rows number, the number of concurent threads
   # * :init_timeout = allow to pause execution to allow for larger gardens to initialize
   # === Example
-  #  gardener = Abundance.gardener( :block_size => 8192, :rows => 2, :init_timeout => 2) do
+  #  gardener = Abundance.gardener( :wheelbarrow => 8192, :rows => 2, :init_timeout => 2) do
   # 
   #   processor = SpecialProcess.new
   #   if processor.started_successfully?
