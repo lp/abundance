@@ -27,9 +27,9 @@
 # 2. require abundance
 # 3. use the Abundance.gardener method to define your forking process.  Its attached block IS THE FORK.  Its return value IS YOUR CLIENT INSTANCE.
 # 4. Abundance.gardener has simple commodities:
-#     * infinite loop inside Abundance.grow method's block
-#     * initialisation before Abundance.grom invocation, just put it there... you can use Abundance.init_status if you need init confirmation from the forks, otherwise don't bother.
-#     * reader and sender for socket communication with your client.  seed.sprout reads, seed.crop sends.
+# * infinite loop inside Abundance.grow method's block
+# * initialisation before Abundance.grow invocation, just put it there... you can use Abundance.init_status if you need init confirmation from the forks, otherwise don't bother.
+# * reader and sender for socket communication with your client.  seed.sprout reads, seed.crop sends.
 # 5. use the client to communicate with forks: client.seed sends, client.harvest reads.
 # 6. for detailed client docs: http://abundance.rubyforge.org/ruby-doc/classes/Gardener.html , and full docs: http://abundance.rubyforge.org/ruby-doc/
 # 
