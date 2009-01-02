@@ -7,46 +7,40 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 
 This class provides a mean to parallelize the execution of your program processes.
-It is a process queue, named the Garden, with concurrent workers, named Rows, all this getting orchestrated by a Gardener.
+Based on the low maintenance Gardener,Garden,Seed natural design pattern.
 
-
-Its characteristics are:
-* concurrent
-* non-blocking
-* simple
-* pure ruby
-* serialization friendly 
-
-It:
-* scales to multi core
-* is intended for batch processing or other parallel ready operations
-* can boost you program's performance
+Its for:
+* forking otherwise blocking loops in a non-blocking fashion
+* a simple abstraction for loopback communication with a forked execution
+* concurrent batch processing
+* scaling process intensive computations to multi-core parallel execution
 
 And not:
 * a replacement for Thread.new invocations
 * a replacement for Thread friendly programming languages like Erlang
 
+Its initial implementation uses:
+* pure ruby
+* standard forks as mean to parallel non-blocking execution
+* fast UDP loopback sockets for process fork communication.
+* serialization friendly communication with process forks
+* a tier queuing fork, as a packet control middle man between process forks and the non-blocking process client
+* an elemental namespace: a process queue, named the Garden, with concurrent workers, named Rows, all this getting orchestrated by a Gardener.
 
-Based on Gardener,Garden,Seed natural design pattern
+///////////////////////////////////////////////////////////////////////////////////////
 
-While there should be no use for this kind of class in most programs, there are some occasions where processes
-cannot live inside serialized execution without blocking.  The built in threading model can save your execution in many occasions, but in many case green threading is not enough, or simply just won't work.
-For a nice explanation on the subject of ruby green threading, you can refer to: http://www.igvita.com/2008/11/13/concurrency-is-a-myth-in-ruby/
+Quick Start:
 
-Abundance is by no mean intended to equal or compete with the tools mentioned in the article, its rather a different
-approach on the same problem.  I hope it will inspire some of you to hack out something that works even better,
-and hopefully, eventually this tool will become obsolete because Ruby will get concurrency built in.
+1. gem install abundance
+2. require abundance
+3. use the Abundance.gardener method to define your forking process.  Its attached block IS THE FORK.  Its return value IS YOUR CLIENT INSTANCE.
+4. Abundance.gardener has simple commodities:
+    * infinite loop inside Abundance.grow method's block
+    * initialisation before Abundance.grom invocation, just put it there... you can use Abundance.init_status if you need init confirmation from the forks, otherwise don't bother.
+    * reader and sender for socket communication with your client.  seed.sprout reads, seed.crop sends.
+5. use the client to communicate with forks: client.seed sends, client.harvest reads.
+6. for detailed client docs: http://abundance.rubyforge.org/ruby-doc/classes/Gardener.html , and full docs: http://abundance.rubyforge.org/ruby-doc/ 
  
-So, the approach here is really simple, you require abundance in your program.
-Then ask the Abundance.gardener class method to build you a garden
-with a garden patch block you provide as part of the invocation.
-This garden patch block includes an initialization block, which may be empty,
-and the invocation of the Abundance.grow class method, the perpetual seed ready patch garden.
-It becomes the threaded looping object, growing concurrently on garden patch row forks.
-
-The gardener objected is then available to seeds and harvest the multiple garden patch row forks,
-allowing you to cultivate parallel garden rows where your seeds sprout till fruitful harvest time comes.
-
 ///////////////////////////////////////////////////////////////////////////////////////
 
 Example:
