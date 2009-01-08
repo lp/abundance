@@ -20,15 +20,9 @@ module Toolshed
   def Toolshed.available_port
     port = @@start_port + 1
     catch :scan_port do
+      stat = `netstat`
       loop do
-        begin
-          socket = UDPSocket.new
-          socket.connect(UDP_HOST,port)
-          socket.send('',0)
-          response,address = socket.recvfrom(1024)
-        rescue Errno::ECONNREFUSED
-          throw :scan_port
-        end
+        throw :scan_port unless stat =~ /localhost\.#{port}/
         port += 1
       end
     end
