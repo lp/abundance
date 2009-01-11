@@ -55,11 +55,6 @@ module Toolshed
   #   return socket_server
   # end
   
-  def socket_server_init
-    File.delete(@my_socket_path) if File.exist?(@my_socket_path)
-    @socket_server = UNIXServer.open(@my_socket_path)
-  end
-  
   # The Toolshed::block_size= method sets the UDP block size for socket operations.
   def Toolshed::block_size=(block_size)
     @@block_size = block_size
@@ -85,16 +80,16 @@ module Toolshed
   def set_me_as_a_socket(role,garden_pid=Process.pid)
     case role
     when :garden
-      @my_socket_path = socket_path(garden_pid)
+      set_my_socket
     else
-      @server_socket_path = socket_path(garden_pid)
-      @my_socket_path = socket_path(Process.pid)
+      set_garden_path(garden_pid)
+      set_my_socket
     end
   end
   
   # 
   
-  def send_to_server_socket(command,data,server_socket_path=@server_socket_path)
+  def socket_send(command,data,server_socket_path=@garden_path)
     client = UNIXSocket.open(server_socket_path)
     client.send(Marshal.dump([command,data,@my_socket_path]))
     client.close
@@ -123,8 +118,8 @@ module Toolshed
   #   end
   # end
   
-  def socket_server_recv
-    client = @socket_server.accept; block = []
+  def socket_recv
+    client = @my_socket.accept; block = []
     catch :whole_block do
       loop do
         packet = client.recvfrom(@@block_size)[0]
@@ -157,6 +152,16 @@ module Toolshed
   
   def socket_path(pid)
     File.catname(pid,SOCKET_ROOT)
+  end
+  
+  def set_my_socket
+    @my_socket_path = socket_path(Process.pid)
+    File.delete(@my_socket_path) if File.exist?(@my_socket_path)
+    @my_socket = UNIXServer.open(@my_socket_path)
+  end
+  
+  def set_garden_path(garden_pid)
+    @garden_path = socket_path(garden_pid)
   end
   
   # The +block_splitter+ method is used internally by the Toolshed method to split message into acceptable UDP block size.  Its operating as a block method, sending a message chunk on each iteration.
