@@ -35,12 +35,13 @@ class Gardener
                           elsif options[:wheelbarrow] < 1024 then 1024
                           else options[:wheelbarrow]
                           end
-    Toolshed::garden_port = Toolshed.available_port
+    # Toolshed::garden_port = Toolshed.available_port
     
     @garden = Garden.new
     @garden_rows = @garden.rows(options[:rows], options[:init_timeout], gardener_block)
     
-    @socket_client_perm = Toolshed.socket_client_perm
+    # @socket_client_perm = Toolshed.socket_client_perm
+    set_my_socket_as_a(:gardener,@garden.pid)
   end
   
   # The +init_status+ method for the Gardener instance allow to harvest an initialisation status message
@@ -49,7 +50,7 @@ class Gardener
   # === Example
   #   puts gardener.init_status.inspect   # => [{:message=>"init ok", :success=>true, :pid=>4760}, {:message=>"init failed", :success=>false, :pid=>4761}] 
   def init_status
-    command, data = socket_client_perm_duplex(:init,@garden_rows.pids.size)
+    command, data = socket_duplex(:init,@garden_rows.pids.size)
     data.map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
@@ -63,7 +64,7 @@ class Gardener
   #  id_seed_1 = gardener.seed("system 'ruby -v'")
   
   def seed(command)
-    command, data = socket_client_perm_duplex(:seed,command)
+    command, data = socket_duplex(:seed,command)
     return data
   end
   
@@ -76,7 +77,7 @@ class Gardener
   #                                               {:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14913}]
   def seed_all(command)
     seed = [@garden_rows.pids.size, command]
-    command, data = socket_client_perm_duplex(:seed_all, seed)
+    command, data = socket_duplex(:seed_all, seed)
     data.map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
@@ -95,7 +96,7 @@ class Gardener
   #  puts "progress is now #{progress}"  # => progress is now 0.75
   
   def growth(crop=:progress)
-    command, data = socket_client_perm_duplex(:growth,crop)
+    command, data = socket_duplex(:growth,crop)
     return data
   end
   
@@ -114,7 +115,7 @@ class Gardener
   #  seed1_result = gardener.harvest(id_seed_1)
   
   def harvest(crop)
-    command, data = socket_client_perm_duplex(:harvest,crop)
+    command, data = socket_duplex(:harvest,crop)
     return data
   end
   
@@ -124,7 +125,7 @@ class Gardener
   #  final_harvest = gardener.close
   
   def close
-    command, data = socket_client_perm_duplex(:close,{:level => :garden, :pid => @garden_rows.pids})
+    command, data = socket_duplex(:close,{:level => :garden, :pid => @garden_rows.pids})
     return data
   end
   

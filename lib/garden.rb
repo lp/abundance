@@ -32,68 +32,71 @@ class Garden
   def initialize
     @pid = fork do
       @quit = false; @full_crop = false; @do_init = nil; @seed_all = nil; @init_all_crop = []
-      @harvest = []; @rows_port = []; @init_done = []; @seed_all_done = []; @seed_all_crop = []
+      @harvest = []; @rows_socket_paths = []; @init_done = []; @seed_all_done = []; @seed_all_crop = []
       @seeds = []; @sprouts = []; @crops = []; @id = 0
-      @socket_server = Toolshed.socket_server(Toolshed::garden_port)
-      @socket_client_temp = Toolshed.socket_client_temp
+      # @socket_server = Toolshed.socket_server(Toolshed::garden_port)
+      # @socket_client_temp = Toolshed.socket_client_temp
+      set_my_socket_as_a(:garden)
       loop do
         catch :fill_rows do
           loop do
-            if ! @seed_all.nil? && ! @rows_port.empty? && @seed_all_done.size != @seed_all[0]
-              row_port = @rows_port.shift
-              unless @seed_all_done.include?( row_port )
-                socket_client_temp(:seed_all,@seed_all[1],row_port)
-                @seed_all_done << row_port
+            if ! @seed_all.nil? && ! @rows_socket_paths.empty? && @seed_all_done.size != @seed_all[0]
+              row_socket_path = @rows_socket_paths.shift
+              unless @seed_all_done.include?( row_socket_path )
+                socket_send(:seed_all,@seed_all[1],row_socket_path)
+                @seed_all_done << row_socket_path
               else
-                @rows_port << row_port
+                @rows_socket_paths << row_socket_path
               end
-            elsif ! @do_init.nil? && ! @rows_port.empty? && @init_done.size != @do_init
-              row_port = @rows_port.shift
-              unless @init_done.include?( row_port )
-                socket_client_temp(:init,'init_status',row_port)
-                @init_done << row_port
+            elsif ! @do_init.nil? && ! @rows_socket_paths.empty? && @init_done.size != @do_init
+              row_socket_path = @rows_socket_paths.shift
+              unless @init_done.include?( row_socket_path )
+                socket_send(:init,'init_status',row_socket_path)
+                @init_done << row_socket_path
               else
-                @rows_port << row_port
+                @rows_socket_paths << row_socket_path
               end
-            elsif ! @seeds.empty? && ! @rows_port.empty?
+            elsif ! @seeds.empty? && ! @rows_socket_paths.empty?
               seed = @seeds.shift
               @sprouts[seed[:id]] = seed
-              row_port = @rows_port.shift
-              socket_client_temp(:sprout,seed,row_port)
-            elsif @quit && ! @rows_port.empty?
+              row_socket_path = @rows_socket_paths.shift
+              socket_send(:sprout,seed,row_socket_path)
+            elsif @quit && ! @rows_socket_paths.empty?
               seed = nil
-              row_port = @rows_port.shift
-              socket_client_temp(:quit,seed,row_port)
+              row_socket_path = @rows_socket_paths.shift
+              socket_send(:quit,seed,row_socket_path)
             else
               throw :fill_rows
             end               
           end
         end
-        command, data, clientport, clientname, clientaddr = socket_server_recv
+        # command, data, clientport, clientname, clientaddr = socket_server_recv
+        command, data, client_socket_path = socket_recv
         case command
         when :seed
           @id += 1; @seeds << {:id => @id , :seed => data}
-          socket_server_send(command,@id,clientaddr,clientport)
+          # socket_server_send(command,@id,clientaddr,clientport)
+          socket_send(command,@id,client_socket_path)
         when :row
           if @quit
             command = :quit
             seed = nil
           elsif @seeds.empty?
             seed = nil
-            @rows_port << data
+            @rows_socket_paths << data
           else
             seed = @seeds.shift
             @sprouts[seed[:id]] = seed
           end
-          socket_server_send(command,seed,clientaddr,clientport)  
+          socket_send(command,seed,client_socket_path)  
         when :crop
           @sprouts[data[:id]] = nil
-          @crops[data[:id]] = data; socket_server_send(command,true,clientaddr,clientport)
+          @crops[data[:id]] = data; socket_send(command,true,client_socket_path)
           if @harvest[data[:id]]
-            socket_server_send(command,data, @harvest[data[:id]][:clientaddr], @harvest[data[:id]][:clientport]) 
+            socket_send(command,data, @harvest[data[:id]][:client_socket_path]) 
             @crops[data[:id]] = @harvest[data[:id]] = nil
           elsif @full_crop && @seeds.compact.empty? && @sprouts.compact.empty?
-            socket_server_send(command,@crops.compact,@mem_addr,@mem_port)
+            socket_send(command,@crops.compact,@mem_client_socket_path)
             @crops.clear; @full_crop = false
           end
         when :growth
@@ -101,81 +104,81 @@ class Garden
           when :progress
             value = @crops.size.to_f / (@crops.size + @sprouts.compact.size + @seeds.size)
             value = 1 if value.nan?; progress = sprintf( "%.2f", value)
-            socket_server_send(command,progress,clientaddr,clientport)
+            socket_send(command,progress,client_socket_path)
           when :seed
-            socket_server_send(command,@seeds.size,clientaddr,clientport)
+            socket_send(command,@seeds.size,client_socket_path)
           when :sprout
-            socket_server_send(command,@sprouts.compact.size,clientaddr,clientport)
+            socket_send(command,@sprouts.compact.size,client_socket_path)
           when :crop
-            socket_server_send(command,@crops.size,clientaddr,clientport)
+            socket_send(command,@crops.size,client_socket_path)
           else
-            socket_server_send(command,false,clientaddr,clientport)
+            socket_send(command,false,client_socket_path)
           end
         when :harvest
           case data
           when :all
-            socket_server_send(command,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact},clientaddr,clientport)
+            socket_send(command,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact},client_socket_path)
           when :seed
-            socket_server_send(command,@seeds,clientaddr,clientport)
+            socket_send(command,@seeds,client_socket_path)
           when :sprout
-            socket_server_send(command,@sprouts.compact,clientaddr,clientport)
+            socket_send(command,@sprouts.compact,client_socket_path)
           when :crop
-            socket_server_send(command,@crops.compact,clientaddr,clientport)
+            socket_send(command,@crops.compact,client_socket_path)
             @crops.clear
           when :full_crop
             if @seeds.compact.empty? && @sprouts.compact.empty?
-              socket_server_send(command,@crops.compact,clientaddr,clientport)
+              socket_send(command,@crops.compact,client_socket_path)
               @crops.clear
             else
               @full_crop = true
-              @mem_addr = clientaddr; @mem_port = clientport
+              @mem_client_socket_path = client_socket_path
             end
           else
             if data.is_a? Integer
               if @crops[data]
-                socket_server_send(command,@crops[data],clientaddr,clientport)
+                socket_send(command,@crops[data],client_socket_path)
                 @crops[data] = nil
               else
-                @harvest[data] = {:clientaddr => clientaddr, :clientport => clientport}
+                @harvest[data] = {:client_socket_path => client_socket_path}
               end
             else
-              socket_server_send(command,false,clientaddr,clientport)
+              socket_send(command,false,client_socket_path)
             end
           end
         when :init
           @do_init = data
-          @init_return = {:clientaddr => clientaddr, :clientport => clientport}
+          @init_return = {:client_socket_path => client_socket_path}
         when :init_crop
-          socket_server_send(command,true,clientaddr,clientport)
+          socket_send(command,true,client_socket_path)
           @init_all_crop << data
           if @init_all_crop.size == @do_init
-            socket_server_send(command,@init_all_crop, @init_return[:clientaddr], @init_return[:clientport])
+            socket_send(command,@init_all_crop, @init_return[:client_socket_path])
             @init_return = Hash.new; @init_done = Array.new; @do_init = nil; @init_all_crop = Array.new
           end
         when :seed_all
           @seed_all = data
-          @seed_all_return = {:clientaddr => clientaddr, :clientport => clientport, :data => []}
+          @seed_all_return = {:client_socket_path => client_socket_path, :data => []}
         when :seed_all_crop
-          socket_server_send(command,true,clientaddr,clientport)
+          socket_send(command,true,client_socket_path)
           @seed_all_crop << data
           if @seed_all_crop.size == @seed_all[0]
-            socket_server_send(command,@seed_all_crop, @seed_all_return[:clientaddr], @seed_all_return[:clientport])
+            socket_send(command,@seed_all_crop, @seed_all_return[:client_socket_path])
             @seed_all = nil; @seed_all_return = Hash.new; @seed_all_done = Array.new; @seed_all_crop = Array.new
           end
         when :close
           if data[:level] == :garden
             @seeds_pid = data[:pid]
             @quit = true
-            @mem_addr = clientaddr; @mem_port = clientport
+            @mem_client_socket_path = client_socket_path
           else
             @seeds_pid.delete(data[:pid].to_i)
             if @seeds_pid.empty?
-              socket_server_send(:close,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}, @mem_addr, @mem_port)
+              socket_send(:close,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}, @mem_client_socket_path)
               exit
             end
           end
         else
-          socket_server_send(command,false,clientaddr,clientport)
+          socket_send(command,false,client_socket_path)
         end
       end
     end
@@ -194,7 +197,7 @@ class Garden
   # 
   
   def rows(rows,init_timeout,grow_block)
-    Rows.new(rows,init_timeout,grow_block)
+    Rows.new(rows,init_timeout,@pid,grow_block)
   end
   
   # :title:Rows
@@ -213,17 +216,19 @@ class Garden
     # === Parameter
     # * _rows_ = garden rows number, the number of concurent threads
     # * _init_timeout_ = allow to pause execution to allow for larger garden rows to initialize
+    # * _garden_pid_ = the parent Garden's pid, for loopback communication purpose
     # === Example
     #  rows = Rows.new(4,2) { grow_block }
     
-    def initialize(rows,init_timeout,gardener_block)
+    def initialize(rows,init_timeout,garden_pid,gardener_block)
       @pids = []
       rows.times do
-        row_port = Toolshed.available_port
+        # row_port = Toolshed.available_port
         @pids << fork do
-          @socket_client_perm = Toolshed.socket_client_perm
+          # @socket_client_perm = Toolshed.socket_client_perm
           @seed_all = false
-          @socket_server = Toolshed.socket_server(row_port)
+          # @socket_server = Toolshed.socket_server(row_port)
+          set_my_socket_as_a(:row,garden_pid)
           t1 = Thread.new do
             gardener_block.call
           end
@@ -231,15 +236,15 @@ class Garden
           t2 = Thread.new do
             loop do
               if $seed.nil?
-                command, data = socket_client_perm_duplex(:row,row_port)
+                command, data = socket_duplex(:row,my_socket_path)
                 if command == :quit
                   pid = Process.pid
-                  socket_client_perm_send(:close,{:level => :seed, :pid => pid})
+                  socket_send(:close,{:level => :seed, :pid => pid})
                   exit
                 end
                 $seed = data
                 if $seed.nil?
-                  command, data, clientport, clientname, clientaddr = socket_server_recv
+                  command, data, client_socket_path = socket_recv
                   case command
                   when :sprout
                     $seed = data
@@ -248,15 +253,15 @@ class Garden
                     $seed = {:id => Process.pid, :seed => data}
                   when :init
                     $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
-                    command, data = socket_client_perm_duplex(:init_crop,$init)
+                    command, data = socket_duplex(:init_crop,$init)
                   end
                 end
               elsif ! $seed[:success].nil?
                 if @seed_all
-                  command, data = socket_client_perm_duplex(:seed_all_crop,$seed)
+                  command, data = socket_duplex(:seed_all_crop,$seed)
                   @seed_all = false
                 else
-                  command, data = socket_client_perm_duplex(:crop,$seed)
+                  command, data = socket_duplex(:crop,$seed)
                 end
                 $seed = nil;
               else
