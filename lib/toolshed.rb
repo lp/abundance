@@ -19,6 +19,7 @@ module Toolshed
   require 'socket'
   # UDP_HOST = 'localhost'
   SOCKET_ROOT = '/tmp/abundance/'
+  Dir.mkdir(SOCKET_ROOT) unless File.exist?(SOCKET_ROOT)
   # @@start_port = 50000
   # @@sessions = []
   
@@ -77,7 +78,7 @@ module Toolshed
   
   # The +assign_sockets+ method assign a value client and server variables
   
-  def set_me_as_a_socket(role,garden_pid=Process.pid)
+  def set_my_socket_as_a(role,garden_pid=Process.pid)
     case role
     when :garden
       set_my_socket
@@ -87,12 +88,19 @@ module Toolshed
     end
   end
   
+  def my_socket_path
+    @my_socket_path
+  end
+  
   # 
   
   def socket_send(command,data,server_socket_path=@garden_path)
-    client = UNIXSocket.open(server_socket_path)
-    client.send(Marshal.dump([command,data,@my_socket_path]))
-    client.close
+    send_block(command,data,server_socket_path)
+  end
+  
+  def socket_duplex(command,data,server_socket_path=@garden_path)
+    send_block(command,data,server_socket_path)
+    Marshal.load(recv_whole_block)
   end
   
   # The +socket_client_perm_duplex+ method is used as the main Row loop send/receive method and for all gardener's send/receive
@@ -119,18 +127,7 @@ module Toolshed
   # end
   
   def socket_recv
-    client = @my_socket.accept; block = []
-    catch :whole_block do
-      loop do
-        packet = client.recvfrom(@@block_size)[0]
-        if packet == ''
-          throw :whole_block
-        else
-          block << packet
-        end
-      end
-    end
-    Marshal.load(block)
+    Marshal.load(recv_whole_block)
   end
   
   # The +socket_server_recv+ method is used by the Garden permanent socket and by the Row idle socket to wait for incomming messages.
@@ -151,7 +148,7 @@ module Toolshed
   private 
   
   def socket_path(pid)
-    File.catname(pid,SOCKET_ROOT)
+    File.catname(pid.to_s,SOCKET_ROOT)
   end
   
   def set_my_socket
@@ -162,6 +159,37 @@ module Toolshed
   
   def set_garden_path(garden_pid)
     @garden_path = socket_path(garden_pid)
+  end
+  
+  def recv_whole_block
+    begin
+      client = @my_socket.accept; block = []
+      catch :whole_block do
+        loop do
+          packet = client.recvfrom(@@block_size)[0]
+          if packet == ''
+            throw :whole_block
+          else
+            block << packet
+          end
+        end
+      end
+      return block.join
+    rescue Errno::EADDRINUSE
+      retry
+    end
+  end
+  
+  def send_block(command,data,server_socket_path)
+    begin
+      client = UNIXSocket.open(server_socket_path)
+      client.send(Marshal.dump([command,data,@my_socket_path]),0)
+      client.close
+    rescue Errno::EADDRINUSE
+      retry
+    rescue Errno::ECONNREFUSED
+      retry
+    end
   end
   
   # The +block_splitter+ method is used internally by the Toolshed method to split message into acceptable UDP block size.  Its operating as a block method, sending a message chunk on each iteration.
