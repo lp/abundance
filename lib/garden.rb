@@ -34,8 +34,6 @@ class Garden
       @quit = false; @full_crop = false; @do_init = nil; @seed_all = nil; @init_all_crop = []
       @harvest = []; @rows_socket_paths = []; @init_done = []; @seed_all_done = []; @seed_all_crop = []
       @seeds = []; @sprouts = []; @crops = []; @id = 0
-      # @socket_server = Toolshed.socket_server(Toolshed::garden_port)
-      # @socket_client_temp = Toolshed.socket_client_temp
       set_my_socket_as_a(:garden)
       loop do
         catch :fill_rows do
@@ -70,12 +68,10 @@ class Garden
             end               
           end
         end
-        # command, data, clientport, clientname, clientaddr = socket_server_recv
         command, data, client_socket_path = socket_recv
         case command
         when :seed
           @id += 1; @seeds << {:id => @id , :seed => data}
-          # socket_server_send(command,@id,clientaddr,clientport)
           socket_send(command,@id,client_socket_path)
         when :row
           if @quit
@@ -223,11 +219,8 @@ class Garden
     def initialize(rows,init_timeout,garden_pid,gardener_block)
       @pids = []
       rows.times do
-        # row_port = Toolshed.available_port
         @pids << fork do
-          # @socket_client_perm = Toolshed.socket_client_perm
           @seed_all = false
-          # @socket_server = Toolshed.socket_server(row_port)
           set_my_socket_as_a(:row,garden_pid)
           t1 = Thread.new do
             gardener_block.call

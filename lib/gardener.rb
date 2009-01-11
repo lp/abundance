@@ -35,12 +35,10 @@ class Gardener
                           elsif options[:wheelbarrow] < 1024 then 1024
                           else options[:wheelbarrow]
                           end
-    # Toolshed::garden_port = Toolshed.available_port
     
     @garden = Garden.new
     @garden_rows = @garden.rows(options[:rows], options[:init_timeout], gardener_block)
     
-    # @socket_client_perm = Toolshed.socket_client_perm
     set_my_socket_as_a(:gardener,@garden.pid)
   end
   
