@@ -29,10 +29,13 @@ module Toolshed
   def set_my_socket_as_a(role,garden_pid=Process.pid)
     case role
     when :garden
-      set_my_socket
+      set_my_socket(Process.pid.to_s)
+    when :gardener
+      set_garden_path(garden_pid)
+      set_my_socket(Process.pid.to_s + Time.now.to_i.to_s + rand(10000).to_s)
     else
       set_garden_path(garden_pid)
-      set_my_socket
+      set_my_socket(Process.pid.to_s)
     end
   end
   
@@ -57,18 +60,18 @@ module Toolshed
     
   private 
   
-  def socket_path(pid)
-    File.catname(pid.to_s,SOCKET_ROOT)
+  def socket_path(socket_name)
+    File.catname(socket_name,SOCKET_ROOT)
   end
   
-  def set_my_socket
-    @my_socket_path = socket_path(Process.pid)
+  def set_my_socket(socket_name)
+    @my_socket_path = socket_path(socket_name)
     File.delete(@my_socket_path) if File.exist?(@my_socket_path)
     @my_socket = UNIXServer.open(@my_socket_path)
   end
   
   def set_garden_path(garden_pid)
-    @garden_path = socket_path(garden_pid)
+    @garden_path = socket_path(garden_pid.to_s)
   end
   
   def recv_whole_block
