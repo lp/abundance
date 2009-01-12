@@ -87,7 +87,7 @@ class Garden
           socket_send(command,seed,client_socket_path)  
         when :crop
           @sprouts[data[:id]] = nil
-          @crops[data[:id]] = data; socket_send(command,true,client_socket_path)
+          @crops[data[:id]] = data
           if @harvest[data[:id]]
             socket_send(command,data, @harvest[data[:id]][:client_socket_path]) 
             @crops[data[:id]] = @harvest[data[:id]] = nil
@@ -145,7 +145,6 @@ class Garden
           @do_init = data
           @init_return = {:client_socket_path => client_socket_path}
         when :init_crop
-          socket_send(command,true,client_socket_path)
           @init_all_crop << data
           if @init_all_crop.size == @do_init
             socket_send(command,@init_all_crop, @init_return[:client_socket_path])
@@ -155,7 +154,6 @@ class Garden
           @seed_all = data
           @seed_all_return = {:client_socket_path => client_socket_path, :data => []}
         when :seed_all_crop
-          socket_send(command,true,client_socket_path)
           @seed_all_crop << data
           if @seed_all_crop.size == @seed_all[0]
             socket_send(command,@seed_all_crop, @seed_all_return[:client_socket_path])
@@ -246,15 +244,15 @@ class Garden
                     $seed = {:id => Process.pid, :seed => data}
                   when :init
                     $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
-                    command, data = socket_duplex(:init_crop,$init)
+                    socket_send(:init_crop,$init)
                   end
                 end
               elsif ! $seed[:success].nil?
                 if @seed_all
-                  command, data = socket_duplex(:seed_all_crop,$seed)
+                  socket_send(:seed_all_crop,$seed)
                   @seed_all = false
                 else
-                  command, data = socket_duplex(:crop,$seed)
+                  socket_send(:crop,$seed)
                 end
                 $seed = nil;
               else
