@@ -1,4 +1,7 @@
 class Garden
+  # Author:: lp (mailto:lp@spiralix.org)
+  # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
+  # :title:Cycles
   module Cycles
     
     def set_my_containers
