@@ -44,7 +44,7 @@ Quick Start:
 ///////////////////////////////////////////////////////////////////////////////////////
 
 Example:
- gardener = Abundance.gardener( :wheelbarrow => 8192, :rows => 2, :init_timeout => 2) do
+ gardener = Abundance.gardener( :wheelbarrow => 124, :rows => 2, :init_timeout => 2) do
 
   processor = SpecialProcess.new
   if processor.started_successfully?
