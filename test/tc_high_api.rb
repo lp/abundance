@@ -34,7 +34,7 @@ class TestHighAPI < Test::Unit::TestCase
   private
   
   def set_gardener
-    @g = Abundance.gardener(:wheelbarrow => 8192, :rows => @rows, :init_timeout => 3) do
+    @g = Abundance.gardener(:rows => @rows, :init_timeout => 3) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|
         seed.crop(true, "gardener: #{seed.sprout}")
