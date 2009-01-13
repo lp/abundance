@@ -5,7 +5,7 @@ require 'abundance'
 class TestHighAPI < Test::Unit::TestCase
   
   def test_abundance_robust
-    @seed_size = 8192
+    @seed_size = 124
     @rows = 8
     @init_timeout = 3
     hyper_gardener
