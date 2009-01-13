@@ -47,11 +47,11 @@ class Abundance
   # with its garden supplied as a block.  The invocation block must include
   # the +grow+ class method and a preceeding optional initialisation section that may include and +init_status+ return message.
   # === Parameters
-  # * :wheelbarrow = the socket size for the garden communication packets, in bytes, range from 1024 to 8192, defaults to 8192
+  # * :wheelbarrow = the socket size for the garden communication packets, in bytes, up to 8192, defaults to 124
   # * :rows = garden rows number, the number of concurent threads
   # * :init_timeout = allow to pause execution to allow for larger gardens to initialize
   # === Example
-  #  gardener = Abundance.gardener( :wheelbarrow => 8192, :rows => 2, :init_timeout => 2) do
+  #  gardener = Abundance.gardener( :wheelbarrow => 124, :rows => 2, :init_timeout => 2) do
   # 
   #   processor = SpecialProcess.new
   #   if processor.started_successfully?
