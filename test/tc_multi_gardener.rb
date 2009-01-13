@@ -19,7 +19,7 @@ class TestHighAPI < Test::Unit::TestCase
   private
   
   def set_gardener1
-    @g1 = Abundance.gardener(:wheelbarrow => 128, :rows => @rows, :init_timeout => 3) do
+    @g1 = Abundance.gardener(:rows => @rows, :init_timeout => 3) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|
         seed.crop(true, "gardener1: #{seed.sprout}")
@@ -28,7 +28,7 @@ class TestHighAPI < Test::Unit::TestCase
   end
   
   def set_gardener2
-    @g2 = Abundance.gardener(:wheelbarrow => 128, :rows => @rows, :init_timeout => 3) do
+    @g2 = Abundance.gardener(:rows => @rows, :init_timeout => 3) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|
         seed.crop(true, "gardener2: #{seed.sprout}")
@@ -43,6 +43,7 @@ class TestHighAPI < Test::Unit::TestCase
     answer1 = @g1.harvest(id1)
     answer2 = @g2.harvest(id2)
     
+    assert(answer1[:message] != answer2[:message])
     assert(answer1[:message] =~ /gardener1.*/)
     assert(answer2[:message] =~ /gardener2.*/)
   end
