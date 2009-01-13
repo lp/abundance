@@ -1,6 +1,12 @@
 class Garden
   module Cycles
     
+    def set_my_containers
+      @quit = false; @full_crop = false; @do_init = nil; @seed_all = nil; @init_all_crop = []
+      @harvest = []; @rows_socket_paths = []; @init_done = []; @seed_all_done = []; @seed_all_crop = []
+      @seeds = []; @sprouts = []; @crops = []; @id = 0
+    end
+    
     def seed_if_row_available
        catch :fill_rows do
          loop do
