@@ -23,16 +23,16 @@ class Gardener
   # As part of the Abundance lib, Gardener is not initialized directly, 
   # but rather through Abundance.gardener.
   # === Parameters
-  # * :wheelbarrow = the socket size for the garden communication packets, in bytes, range from 1024 to 8192, defaults to 8192
+  # * :wheelbarrow = the socket size for the garden communication packets, in bytes, up to 8192, defaults to 124
   # * :rows = garden rows number, the number of concurent threads
   # * :init_timeout = allow to pause execution to allow for larger gardens to initialize
   # === Example
-  #  gardener = Gardener.new({:wheelbarrow => 1024, :rows => 6, :init_timeout}) { your_special_garden function }
+  #  gardener = Gardener.new({:wheelbarrow => 124, :rows => 6, :init_timeout}) { your_special_garden function }
   # 
   
   def initialize(options,gardener_block)
-    Toolshed::block_size = if options[:wheelbarrow].nil? || options[:wheelbarrow] > 8192 then 8192
-                          elsif options[:wheelbarrow] < 1024 then 1024
+    Toolshed::block_size = if options[:wheelbarrow].nil? then 124
+                          elsif options[:wheelbarrow] > 8192 then 8192
                           else options[:wheelbarrow]
                           end
     
