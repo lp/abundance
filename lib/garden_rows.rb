@@ -51,21 +51,21 @@ class Garden
           t2 = Thread.new do
             loop do
               if $seed.nil?
-                command, option, data = socket_duplex(:row,:row,my_socket_path)
-                if command == :quit
+                message_block = socket_duplex(:row,:row,my_socket_path)
+                if message_block[0] == :quit
                   pid = Process.pid
                   socket_send(:close,:row,{:level => :seed, :pid => pid})
                   exit
                 end
-                $seed = data
+                $seed = message_block[2]
                 if $seed.nil?
-                  command, option, data, client_socket_path = socket_recv
-                  case command
+                  message_block = socket_recv
+                  case message_block[0]
                   when :sprout
-                    $seed = data
+                    $seed = message_block[2]
                   when :seed_all
                     @seed_all = true
-                    $seed = {:id => Process.pid, :seed => data}
+                    $seed = {:id => Process.pid, :seed => message_block[2]}
                   when :init
                     $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
                     socket_send(:init_crop,:row,$init)
