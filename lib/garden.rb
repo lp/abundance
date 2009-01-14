@@ -40,7 +40,7 @@ class Garden
       loop do
         seed_if_row_available
         
-        command, data, client_socket_path = socket_recv
+        command, option, data, client_socket_path = socket_recv
         case command
         when :seed
           place_seed_in_queue(command,data,client_socket_path)
