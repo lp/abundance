@@ -10,10 +10,10 @@ This class provides a mean to parallelize the execution of your program processe
 Based on the low maintenance Gardener,Garden,Seed natural design pattern.
 
 Its for:
-* forking otherwise blocking loops in a non-blocking fashion
+* running otherwise blocking loops in a non-blocking fashion
 * a simple abstraction for loopback communication with a forked execution
 * concurrent batch processing
-* scaling process intensive computations to multi-core parallel execution
+* scaling process intensive computations for SMP execution
 
 And not:
 * a replacement for Thread.new invocations
