@@ -40,30 +40,31 @@ class Garden
       loop do
         seed_if_row_available
         
-        command, option, data, client_socket_path = socket_recv
-        case command
+        message_block = socket_recv
+        case message_block[0]
         when :seed
-          place_seed_in_queue(command,data,client_socket_path)
+          place_seed_in_queue(message_block)
         when :row
-          this_row_is_available(command,data,client_socket_path)  
+          this_row_is_available(message_block)  
         when :crop
-          save_crop_for(command,data,client_socket_path)
+          save_crop_for(message_block)
         when :growth
-          report_growth(command,data,client_socket_path)
+          report_growth(message_block)
         when :harvest
-          harvest_some(command,data,client_socket_path)
+          harvest_some(message_block)
         when :init
-          ask_for_init_status(command,data,client_socket_path)
+          ask_for_init_status(message_block)
         when :init_crop
-          answer_init_status(command,data,client_socket_path)
+          answer_init_status(message_block)
         when :seed_all
-          seed_for_all_rows(command,data,client_socket_path)
+          seed_for_all_rows(message_block)
         when :seed_all_crop
-          special_crop_seed_all(command,data,client_socket_path)
+          special_crop_seed_all(message_block)
         when :close
-          close_all(command,data,client_socket_path)
+          close_all(message_block)
         else
-          socket_send(command,false,client_socket_path)
+          message_block[2] = false
+          socket_send(message_block)
         end
       end
     end
