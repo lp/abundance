@@ -54,7 +54,7 @@ class Garden
                 command, option, data = socket_duplex(:row,:row,my_socket_path)
                 if command == :quit
                   pid = Process.pid
-                  socket_send(:close,{:level => :seed, :pid => pid})
+                  socket_send(:close,:row,{:level => :seed, :pid => pid})
                   exit
                 end
                 $seed = data
