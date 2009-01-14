@@ -51,7 +51,7 @@ class Garden
           t2 = Thread.new do
             loop do
               if $seed.nil?
-                command, data = socket_duplex(:row,my_socket_path)
+                command, option, data = socket_duplex(:row,:row,my_socket_path)
                 if command == :quit
                   pid = Process.pid
                   socket_send(:close,{:level => :seed, :pid => pid})
@@ -59,7 +59,7 @@ class Garden
                 end
                 $seed = data
                 if $seed.nil?
-                  command, data, client_socket_path = socket_recv
+                  command, option, data, client_socket_path = socket_recv
                   case command
                   when :sprout
                     $seed = data
@@ -68,15 +68,15 @@ class Garden
                     $seed = {:id => Process.pid, :seed => data}
                   when :init
                     $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
-                    socket_send(:init_crop,$init)
+                    socket_send(:init_crop,:row,$init)
                   end
                 end
               elsif ! $seed[:success].nil?
                 if @seed_all
-                  socket_send(:seed_all_crop,$seed)
+                  socket_send(:seed_all_crop,:row,$seed)
                   @seed_all = false
                 else
-                  socket_send(:crop,$seed)
+                  socket_send(:crop,:row,$seed)
                 end
                 $seed = nil;
               else
