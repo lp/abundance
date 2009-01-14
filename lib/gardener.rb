@@ -48,38 +48,38 @@ class Gardener
   # === Example
   #   puts gardener.init_status.inspect   # => [{:message=>"init ok", :success=>true, :pid=>4760}, {:message=>"init failed", :success=>false, :pid=>4761}] 
   def init_status
-    command, data = socket_duplex(:init,@garden_rows.pids.size)
-    data.map! do |row|
+    message_block = socket_duplex(:init,:gardener,@garden_rows.pids.size)
+    message_block[2].map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
-    return data
+    return message_block[2]
   end
   
   # The +seed+ method for the Gardener instance allow to sow a command in the Gardener's Garden.
   # === Parameter
-  # * _command_ = a ruby expression or object
+  # * _data_ = a ruby expression or object
   # === Example
   #  id_seed_1 = gardener.seed("system 'ruby -v'")
   
-  def seed(command)
-    command, data = socket_duplex(:seed,command)
-    return data
+  def seed(data)
+    message_block = socket_duplex(:seed,:gardener,data)
+    return message_block[2]
   end
   
   # The +seed_all+ method allow to send a command to all row processes, usefull for a parameter change
   # that needs to affect the prefered behaviour of all row.  It returns an array containing hashes for each rows results.
   # === Parameter
-  # * _command_ = a ruby expression or object
+  # * _data_ = a ruby expression or object
   # === Example
   #   result = gardener.seed_all("pref local")  # =>  [{:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14915},
   #                                               {:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14913}]
-  def seed_all(command)
-    seed = [@garden_rows.pids.size, command]
-    command, data = socket_duplex(:seed_all, seed)
-    data.map! do |row|
+  def seed_all(data)
+    seed = [@garden_rows.pids.size, data]
+    message_block = socket_duplex(:seed_all,:gardener,seed)
+    message_block[2].map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
-    return data
+    return message_block[2]
   end
   
   # The +growth+ method for the Gardener instance allow to get report of the growing process
@@ -93,9 +93,9 @@ class Gardener
   #  progress = gardener.growth(:progress)
   #  puts "progress is now #{progress}"  # => progress is now 0.75
   
-  def growth(crop=:progress)
-    command, data = socket_duplex(:growth,crop)
-    return data
+  def growth(data=:progress)
+    message_block = socket_duplex(:growth,:gardener,data)
+    return message_block[2]
   end
   
   # The +harvest+ method for the Gardener instance allow to get arrays of results for each queue level.
@@ -112,9 +112,9 @@ class Gardener
   # === Example
   #  seed1_result = gardener.harvest(id_seed_1)
   
-  def harvest(crop)
-    command, data = socket_duplex(:harvest,crop)
-    return data
+  def harvest(data)
+    message_block = socket_duplex(:harvest,:gardener,data)
+    return message_block[2]
   end
   
   # The +close+ method for the Gardener instance allow to safely close the Garden and its Rows.
@@ -123,8 +123,8 @@ class Gardener
   #  final_harvest = gardener.close
   
   def close
-    command, data = socket_duplex(:close,{:level => :garden, :pid => @garden_rows.pids})
-    return data
+    message_block = socket_duplex(:close,:gardener,{:level => :garden, :pid => @garden_rows.pids})
+    return message_block[2]
   end
   
 end
