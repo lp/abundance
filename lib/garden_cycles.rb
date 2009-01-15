@@ -46,8 +46,14 @@ class Garden
      end
      
      def place_seed_in_queue(message_block)
-       @id += 1; @seeds << {:id => @id , :seed => message_block[2]}
-       socket_send(message_block[0],:garden,@id,message_block[3])
+       case message_block[1]
+       when :one
+         @id += 1; @seeds << {:id => @id , :seed => message_block[2]}
+         socket_send(message_block[0],:garden,@id,message_block[3])
+       else
+         @seed_all = [message_block[1], message_block[2]]
+         @seed_all_return = {:client_socket_path => message_block[3], :data => []}
+       end
      end
      
      def this_row_is_available(message_block)
@@ -134,11 +140,6 @@ class Garden
          socket_send(message_block[0],:garden,@init_all_crop, @init_return[:client_socket_path])
          @init_return = Hash.new; @init_done = Array.new; @do_init = nil; @init_all_crop = Array.new
        end
-     end
-     
-     def seed_for_all_rows(message_block)
-       @seed_all = message_block[2]
-       @seed_all_return = {:client_socket_path => message_block[3], :data => []}
      end
      
      def special_crop_seed_all(message_block)
