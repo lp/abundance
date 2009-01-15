@@ -56,8 +56,6 @@ class Garden
           ask_for_init_status(message_block)
         when :init_crop
           answer_init_status(message_block)
-        when :seed_all
-          seed_for_all_rows(message_block)
         when :seed_all_crop
           special_crop_seed_all(message_block)
         when :close
