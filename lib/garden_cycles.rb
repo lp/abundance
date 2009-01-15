@@ -13,10 +13,10 @@ class Garden
     def seed_if_row_available
        catch :fill_rows do
          loop do
-           if ! @seed_all_message_block.nil? && ! @rows_socket_paths.empty? && @seed_all_done.size != @seed_all_message_block[0]
+           if ! @seed_all_message_block.nil? && ! @rows_socket_paths.empty? && @seed_all_done.size != @seed_all_message_block[1]
              row_socket_path = @rows_socket_paths.shift
              unless @seed_all_done.include?( row_socket_path )
-               socket_send(:seed_all,:garden,@seed_all_message_block[1],row_socket_path)
+               socket_send(:seed_all,:garden,@seed_all_message_block[2],row_socket_path)
                @seed_all_done << row_socket_path
              else
                @rows_socket_paths << row_socket_path
@@ -51,7 +51,7 @@ class Garden
          @id += 1; @seeds << {:id => @id , :seed => message_block[2]}
          socket_send(message_block[0],:garden,@id,message_block[3])
        else
-         @seed_all_message_block = [message_block[1],message_block[2],message_block[3]]
+         @seed_all_message_block = Array.new(message_block)
        end
      end
      
@@ -143,8 +143,8 @@ class Garden
      
      def special_crop_seed_all(message_block)
        @seed_all_crop << message_block[2]
-       if @seed_all_crop.size == @seed_all_message_block[0]
-         socket_send(message_block[0],:garden,@seed_all_crop, @seed_all_message_block[2])
+       if @seed_all_crop.size == @seed_all_message_block[1]
+         socket_send(message_block[0],:garden,@seed_all_crop, @seed_all_message_block[3])
          @seed_all_message_block = nil; @seed_all_done = Array.new; @seed_all_crop = Array.new
        end
      end
