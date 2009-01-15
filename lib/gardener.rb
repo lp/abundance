@@ -62,7 +62,7 @@ class Gardener
   #  id_seed_1 = gardener.seed("system 'ruby -v'")
   
   def seed(data)
-    message_block = socket_duplex(:seed,:gardener,data)
+    message_block = socket_duplex(:seed,:one,data)
     return message_block[2]
   end
   
@@ -74,8 +74,7 @@ class Gardener
   #   result = gardener.seed_all("pref local")  # =>  [{:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14915},
   #                                               {:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14913}]
   def seed_all(data)
-    seed = [@garden_rows.pids.size, data]
-    message_block = socket_duplex(:seed_all,:gardener,seed)
+    message_block = socket_duplex(:seed,@garden_rows.pids.size,data)
     message_block[2].map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
