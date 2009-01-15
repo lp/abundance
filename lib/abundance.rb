@@ -2,10 +2,10 @@
 # Based on the low maintenance Gardener,Garden,Seed natural design pattern.
 # 
 # Its for:
-# * forking otherwise blocking loops in a non-blocking fashion
+# * running otherwise blocking loops in a non-blocking fashion
 # * a simple abstraction for loopback communication with a forked execution
 # * concurrent batch processing
-# * scaling process intensive computations to multi-core parallel execution
+# * scaling process intensive computations for SMP execution
 # 
 # And not:
 # * a replacement for Thread.new invocations
@@ -14,7 +14,7 @@
 # Its initial implementation uses:
 # * pure ruby
 # * standard forks as mean to parallel non-blocking execution
-# * fast UDP loopback sockets for process fork communication.
+# * fast loopback sockets for process fork communication.
 # * serialization friendly communication with process forks
 # * a tier queuing fork, as a packet control middle man between process forks and the non-blocking process client
 # * an elemental namespace: a process queue, named the Garden, with concurrent workers, named Rows, all this getting orchestrated by a Gardener.

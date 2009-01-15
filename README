@@ -22,7 +22,7 @@ And not:
 Its initial implementation uses:
 * pure ruby
 * standard forks as mean to parallel non-blocking execution
-* fast UDP loopback sockets for process fork communication.
+* fast loopback sockets for process fork communication.
 * serialization friendly communication with process forks
 * a tier queuing fork, as a packet control middle man between process forks and the non-blocking process client
 * an elemental namespace: a process queue, named the Garden, with concurrent workers, named Rows, all this getting orchestrated by a Gardener.
