@@ -52,24 +52,35 @@ class Garden
             loop do
               if $seed.nil?
                 message_block = socket_duplex(:row,:row,my_socket_path)
-                if message_block[0] == :quit
-                  pid = Process.pid
-                  socket_send(:close,:row,{:level => :seed, :pid => pid})
-                  exit
-                end
-                $seed = message_block[2]
-                if $seed.nil?
+                case message_block[1]
+                when :sprout
+                  $seed = message_block[2]
+                when :all
+                  @seed_all = true
+                  $seed = {:id => Process.pid, :seed => message_block[2]}
+                when :wait
                   message_block = socket_recv
-                  case message_block[0]
+                  case message_block[1]
                   when :sprout
                     $seed = message_block[2]
-                  when :seed_all
+                  when :all
                     @seed_all = true
                     $seed = {:id => Process.pid, :seed => message_block[2]}
                   when :init
                     $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
                     socket_send(:init_crop,:row,$init)
+                  when :quit
+                    pid = Process.pid
+                    socket_send(:close,:row,{:level => :seed, :pid => pid})
+                    exit
                   end
+                when :init
+                  $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
+                  socket_send(:init_crop,:row,$init)
+                when :quit
+                  pid = Process.pid
+                  socket_send(:close,:row,{:level => :seed, :pid => pid})
+                  exit
                 end
               elsif ! $seed[:success].nil?
                 if @seed_all
