@@ -53,7 +53,7 @@ module Toolshed
   # * _data_ = data part of the sent packet
   # * _server_socket_path_ = a UNIXServer socket path for the packets to be sent to
   def socket_send(command,option,data,server_socket_path=@garden_path)
-    send_block(command,option,data,server_socket_path)
+    send_block([command,option,data,server_socket_path])
   end
   
   # The +socket_duplex+ method open a UNIXSocket and send packets to a UNIXServer socket, then wait for loopback communication from destination and return results like +socket_recv+.
@@ -62,7 +62,7 @@ module Toolshed
   # * _data_ = data part of the sent packet
   # * _server_socket_path_ = a UNIXServer socket path for the packets to be sent to
   def socket_duplex(command,option,data,server_socket_path=@garden_path)
-    send_block(command,option,data,server_socket_path)
+    send_block([command,option,data,server_socket_path])
     Marshal.load(recv_whole_block)
   end
   
@@ -121,10 +121,10 @@ module Toolshed
   # * _command_ = command part of the sent packet
   # * _data_ = data part of the sent packet
   # * _server_socket_path_ = the UNIXServer socket path to send to 
-  def send_block(command,option,data,server_socket_path)
+  def send_block(message_block)
     begin
-      client = UNIXSocket.open(server_socket_path)
-      client.send(Marshal.dump([command,option,data,@my_socket_path]),0)
+      client = UNIXSocket.open(message_block[3])
+      client.send(Marshal.dump(message_block[0..2] + [@my_socket_path]),0)
       client.close
     rescue Errno::EADDRINUSE
       retry
