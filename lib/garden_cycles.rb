@@ -71,7 +71,7 @@ class Garden
          seed = @seeds.shift; @sprouts[seed[:id]] = seed
          message_block = [:row, :sprout, seed, message_block[3]]
        end
-       socket_send(message_block[0],message_block[1],message_block[2],message_block[3])
+       socket_send(*message_block)
      end
      
      def save_crop_for(message_block)
