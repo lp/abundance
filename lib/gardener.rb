@@ -48,7 +48,7 @@ class Gardener
   # === Example
   #   puts gardener.init_status.inspect   # => [{:message=>"init ok", :success=>true, :pid=>4760}, {:message=>"init failed", :success=>false, :pid=>4761}] 
   def init_status
-    message_block = socket_duplex(:init,:gardener,@garden_rows.pids.size)
+    message_block = socket_duplex([:init,:gardener,@garden_rows.pids.size,@garden_path])
     message_block[2].map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
@@ -62,7 +62,7 @@ class Gardener
   #  id_seed_1 = gardener.seed("system 'ruby -v'")
   
   def seed(data)
-    message_block = socket_duplex(:seed,:one,data)
+    message_block = socket_duplex([:seed,:one,data,@garden_path])
     return message_block[2]
   end
   
@@ -74,7 +74,7 @@ class Gardener
   #   result = gardener.seed_all("pref local")  # =>  [{:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14915},
   #                                               {:success=>true, :message=>["row pref changed to local"], :seed=>"pref local", :pid=>14913}]
   def seed_all(data)
-    message_block = socket_duplex(:seed,@garden_rows.pids.size,data)
+    message_block = socket_duplex([:seed,@garden_rows.pids.size,data,@garden_path])
     message_block[2].map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
@@ -93,7 +93,7 @@ class Gardener
   #  puts "progress is now #{progress}"  # => progress is now 0.75
   
   def growth(data=:progress)
-    message_block = socket_duplex(:growth,:gardener,data)
+    message_block = socket_duplex([:growth,:gardener,data,@garden_path])
     return message_block[2]
   end
   
@@ -112,7 +112,7 @@ class Gardener
   #  seed1_result = gardener.harvest(id_seed_1)
   
   def harvest(data)
-    message_block = socket_duplex(:harvest,:gardener,data)
+    message_block = socket_duplex([:harvest,:gardener,data,@garden_path])
     return message_block[2]
   end
   
@@ -122,7 +122,7 @@ class Gardener
   #  final_harvest = gardener.close
   
   def close
-    message_block = socket_duplex(:close,:gardener,{:level => :garden, :pid => @garden_rows.pids})
+    message_block = socket_duplex([:close,:gardener,{:level => :garden, :pid => @garden_rows.pids},@garden_path])
     return message_block[2]
   end
   
