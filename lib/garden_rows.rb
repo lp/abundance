@@ -51,7 +51,7 @@ class Garden
           t2 = Thread.new do
             loop do
               if $seed.nil?
-                message_block = socket_duplex(:row,:row,my_socket_path)
+                message_block = socket_duplex([:row,:row,my_socket_path,@garden_path])
                 case message_block[1]
                 when :sprout
                   $seed = message_block[2]
@@ -68,26 +68,26 @@ class Garden
                     $seed = {:id => Process.pid, :seed => message_block[2]}
                   when :init
                     $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
-                    socket_send(:init_crop,:row,$init)
+                    socket_send([:init_crop,:row,$init,@garden_path])
                   when :quit
                     pid = Process.pid
-                    socket_send(:close,:row,{:level => :seed, :pid => pid})
+                    socket_send([:close,:row,{:level => :seed, :pid => pid},@garden_path])
                     exit
                   end
                 when :init
                   $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
-                  socket_send(:init_crop,:row,$init)
+                  socket_send([:init_crop,:row,$init,@garden_path])
                 when :quit
                   pid = Process.pid
-                  socket_send(:close,:row,{:level => :seed, :pid => pid})
+                  socket_send([:close,:row,{:level => :seed, :pid => pid},@garden_path])
                   exit
                 end
               elsif ! $seed[:success].nil?
                 if @seed_all
-                  socket_send(:seed_all_crop,:row,$seed)
+                  socket_send([:seed_all_crop,:row,$seed,@garden_path])
                   @seed_all = false
                 else
-                  socket_send(:crop,:row,$seed)
+                  socket_send([:crop,:row,$seed,@garden_path])
                 end
                 $seed = nil;
               else
