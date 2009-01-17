@@ -155,13 +155,13 @@ class Garden
      def close_all(message_block)
        case message_block[1]
        when :garden
-         @seeds_pid = message_block[2]
          @quit = true
-         @mem_client_socket_path = message_block[3]
+         @close_message_block = Array.new(message_block)
        when :row
-         @seeds_pid.delete(message_block[2].to_i)
-         if @seeds_pid.empty?
-           socket_send([:close,:garden,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}, @mem_client_socket_path])
+         @close_message_block[2].delete(message_block[2].to_i)
+         if @close_message_block[2].empty?
+           @close_message_block[2] = {:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}
+           socket_send(@close_message_block)
            exit
          end
        end
