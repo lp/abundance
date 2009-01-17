@@ -40,8 +40,8 @@ class TestHighAPI < Test::Unit::TestCase
     id1 = @g1.seed(Process.pid)
     id2 = @g2.seed(Process.pid)
     
-    answer1 = @g1.harvest(id1)
-    answer2 = @g2.harvest(id2)
+    answer1 = @g1.harvest(:one,id1)
+    answer2 = @g2.harvest(:one,id2)
     
     assert(answer1[:message] != answer2[:message])
     assert(answer1[:message] =~ /gardener1.*/)
