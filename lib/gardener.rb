@@ -92,8 +92,8 @@ class Gardener
   #  progress = gardener.growth(:progress)
   #  puts "progress is now #{progress}"  # => progress is now 0.75
   
-  def growth(data=:progress)
-    message_block = socket_duplex([:growth,:gardener,data,@garden_path])
+  def growth(option=:progress)
+    message_block = socket_duplex([:growth,option,nil,@garden_path])
     return message_block[2]
   end
   
