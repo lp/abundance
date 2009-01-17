@@ -52,12 +52,6 @@ class Garden
           report_growth(message_block)
         when :harvest
           harvest_some(message_block)
-        when :init
-          ask_for_init_status(message_block)
-        when :init_crop
-          answer_init_status(message_block)
-        when :seed_all_crop
-          special_crop_seed_all(message_block)
         when :close
           close_all(message_block)
         else
