@@ -69,7 +69,7 @@ class TestHighAPI < Test::Unit::TestCase
     id = @g.seed(Process.pid)
     assert_kind_of(Integer,id)
     
-    answer = @g.harvest(id)
+    answer = @g.harvest(:one,id)
     assert_kind_of(Hash,answer)
     assert_equal(Process.pid,answer[:seed])
     assert_equal(id,answer[:id])
