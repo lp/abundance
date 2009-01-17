@@ -48,7 +48,7 @@ class Gardener
   # === Example
   #   puts gardener.init_status.inspect   # => [{:message=>"init ok", :success=>true, :pid=>4760}, {:message=>"init failed", :success=>false, :pid=>4761}] 
   def init_status
-    message_block = socket_duplex([:init,:gardener,@garden_rows.pids.size,@garden_path])
+    message_block = socket_duplex([:harvest,:init,@garden_rows.pids.size,@garden_path])
     message_block[2].map! do |row|
       {:success => row[:success], :message => row[:message], :pid => row[:id]}
     end
@@ -111,8 +111,8 @@ class Gardener
   # === Example
   #  seed1_result = gardener.harvest(id_seed_1)
   
-  def harvest(data)
-    message_block = socket_duplex([:harvest,:gardener,data,@garden_path])
+  def harvest(option,seed_id=nil)
+    message_block = socket_duplex([:harvest,option,seed_id,@garden_path])
     return message_block[2]
   end
   
