@@ -30,14 +30,10 @@ class Garden
                @rows_socket_paths << row_socket_path
              end
            elsif ! @seeds.empty? && ! @rows_socket_paths.empty?
-             seed = @seeds.shift
-             @sprouts[seed[:id]] = seed
-             row_socket_path = @rows_socket_paths.shift
-             socket_send([:seed,:sprout,seed,row_socket_path])
+             seed = @seeds.shift; @sprouts[seed[:id]] = seed
+             socket_send([:seed,:sprout,seed,@rows_socket_paths.shift])
            elsif @quit && ! @rows_socket_paths.empty?
-             seed = nil
-             row_socket_path = @rows_socket_paths.shift
-             socket_send([:seed,:quit,seed,row_socket_path])
+             socket_send([:seed,:quit,nil,@rows_socket_paths.shift])
            else
              throw :fill_rows
            end               
@@ -157,12 +153,13 @@ class Garden
      end
            
      def close_all(message_block)
-       if message_block[2][:level] == :garden
-         @seeds_pid = message_block[2][:pid]
+       case message_block[1]
+       when :garden
+         @seeds_pid = message_block[2]
          @quit = true
          @mem_client_socket_path = message_block[3]
-       else
-         @seeds_pid.delete(message_block[2][:pid].to_i)
+       when :row
+         @seeds_pid.delete(message_block[2].to_i)
          if @seeds_pid.empty?
            socket_send([:close,:garden,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}, @mem_client_socket_path])
            exit
