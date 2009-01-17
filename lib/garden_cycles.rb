@@ -124,27 +124,26 @@ class Garden
        when :one
          unless message_block[2].nil?
            if @crops[message_block[2]]
-             socket_send([message_block[0],:garden,@crops[message_block[2]],message_block[3]])
+             socket_send(message_block[0..1]+[@crops[message_block[2]],message_block[3]])
              @crops[message_block[2]] = nil
            else
              @harvest[message_block[2]] = {:client_socket_path => message_block[3]}
            end
          else
-           socket_send([message_block[0],:garden,false,message_block[3]])
+           message_block[2] = false; socket_send(message_block)
          end
        when :all
-         socket_send([message_block[0],:garden,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact},message_block[3]])
+         message_block[2] = {:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}
+         socket_send(message_block)
        when :seed
-         socket_send([message_block[0],:garden,@seeds,message_block[3]])
+         message_block[2] = @seeds; socket_send(message_block)
        when :sprout
-         socket_send([message_block[0],:garden,@sprouts.compact,message_block[3]])
+         message_block[2] = @sprouts.compact; socket_send(message_block)
        when :crop
-         socket_send([message_block[0],:garden,@crops.compact,message_block[3]])
-         @crops.clear
+         message_block[2] = @crops.compact; socket_send(message_block); @crops.clear
        when :full_crop
          if @seeds.compact.empty? && @sprouts.compact.empty?
-           socket_send([message_block[0],:garden,@crops.compact,message_block[3]])
-           @crops.clear
+           message_block[2] = @crops.compact; socket_send(message_block); @crops.clear
          else
            @full_crop = true
            @mem_client_socket_path = message_block[3]
@@ -153,7 +152,7 @@ class Garden
          @do_init = message_block[2]
          @init_return = {:client_socket_path => message_block[3]}
        else
-         socket_send([message_block[0],:garden,false,message_block[3]])
+         message_block[2] = false; socket_send(message_block)
        end
      end
            
