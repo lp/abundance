@@ -122,7 +122,7 @@ class Gardener
   #  final_harvest = gardener.close
   
   def close
-    message_block = socket_duplex([:close,:gardener,{:level => :garden, :pid => @garden_rows.pids},@garden_path])
+    message_block = socket_duplex([:close,:garden,@garden_rows.pids,@garden_path])
     return message_block[2]
   end
   
