@@ -92,6 +92,12 @@ class Garden
            socket_send([message_block[0],:garden,@seed_all_crop, @seed_all_message_block[3]])
            @seed_all_message_block = nil; @seed_all_done = Array.new; @seed_all_crop = Array.new
          end
+       when :init
+         @init_all_crop << message_block[2]
+         if @init_all_crop.size == @do_init
+           socket_send([message_block[0],:garden,@init_all_crop, @init_return[:client_socket_path]])
+           @init_return = Hash.new; @init_done = Array.new; @do_init = nil; @init_all_crop = Array.new
+         end
        end
      end
      
@@ -113,7 +119,18 @@ class Garden
      end
      
      def harvest_some(message_block)
-       case message_block[2]
+       case message_block[1]
+       when :one
+         unless message_block[2].nil?
+           if @crops[message_block[2]]
+             socket_send([message_block[0],:garden,@crops[message_block[2]],message_block[3]])
+             @crops[message_block[2]] = nil
+           else
+             @harvest[message_block[2]] = {:client_socket_path => message_block[3]}
+           end
+         else
+           socket_send([message_block[0],:garden,false,message_block[3]])
+         end
        when :all
          socket_send([message_block[0],:garden,{:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact},message_block[3]])
        when :seed
@@ -131,33 +148,14 @@ class Garden
            @full_crop = true
            @mem_client_socket_path = message_block[3]
          end
+       when :init
+         @do_init = message_block[2]
+         @init_return = {:client_socket_path => message_block[3]}
        else
-         if message_block[2].is_a? Integer
-           if @crops[message_block[2]]
-             socket_send([message_block[0],:garden,@crops[message_block[2]],message_block[3]])
-             @crops[message_block[2]] = nil
-           else
-             @harvest[message_block[2]] = {:client_socket_path => message_block[3]}
-           end
-         else
-           socket_send([message_block[0],:garden,false,message_block[3]])
-         end
+         socket_send([message_block[0],:garden,false,message_block[3]])
        end
      end
-     
-     def ask_for_init_status(message_block)
-       @do_init = message_block[2]
-       @init_return = {:client_socket_path => message_block[3]}
-     end
-     
-     def answer_init_status(message_block)
-       @init_all_crop << message_block[2]
-       if @init_all_crop.size == @do_init
-         socket_send([message_block[0],:garden,@init_all_crop, @init_return[:client_socket_path]])
-         @init_return = Hash.new; @init_done = Array.new; @do_init = nil; @init_all_crop = Array.new
-       end
-     end
-     
+           
      def close_all(message_block)
        if message_block[2][:level] == :garden
          @seeds_pid = message_block[2][:pid]
