@@ -70,16 +70,14 @@ class Garden
                     $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
                     socket_send([:crop,:init,$init,@garden_path])
                   when :quit
-                    pid = Process.pid
-                    socket_send([:close,:row,{:level => :seed, :pid => pid},@garden_path])
+                    socket_send([:close,:row,Process.pid,@garden_path])
                     exit
                   end
                 when :init
                   $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
                   socket_send([:crop,:init,$init,@garden_path])
                 when :quit
-                  pid = Process.pid
-                  socket_send([:close,:row,{:level => :seed, :pid => pid},@garden_path])
+                  socket_send([:close,:row,Process.pid,@garden_path])
                   exit
                 end
               elsif ! $seed[:success].nil?
