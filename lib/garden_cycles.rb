@@ -49,7 +49,7 @@ class Garden
        case message_block[1]
        when :one
          @id += 1; @seeds << {:id => @id , :seed => message_block[2]}
-         socket_send([message_block[0],:garden,@id,message_block[3]])
+         message_block[2] = @id; socket_send(message_block)
        else
          @seed_all_message_block = Array.new(message_block)
        end
