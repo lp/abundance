@@ -102,20 +102,21 @@ class Garden
      end
      
      def report_growth(message_block)
-       case message_block[2]
+       case message_block[1]
        when :progress
          value = @crops.size.to_f / (@crops.size + @sprouts.compact.size + @seeds.size)
          value = 1 if value.nan?; progress = sprintf( "%.2f", value)
-         socket_send([message_block[0],:garden,progress,message_block[3]])
+         message_block[2] = progress
        when :seed
-         socket_send([message_block[0],:garden,@seeds.size,message_block[3]])
+         message_block[2] = @seeds.size
        when :sprout
-         socket_send([message_block[0],:garden,@sprouts.compact.size,message_block[3]])
+         message_block[2] = @sprouts.compact.size
        when :crop
-         socket_send([message_block[0],:garden,@crops.size,message_block[3]])
+         message_block[2] = @crops.size
        else
-         socket_send([message_block[0],:garden,false,message_block[3]])
+         message_block[2] = false
        end
+       socket_send(message_block)
      end
      
      def harvest_some(message_block)
