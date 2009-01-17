@@ -84,10 +84,10 @@ class Garden
                 end
               elsif ! $seed[:success].nil?
                 if @seed_all
-                  socket_send([:seed_all_crop,:row,$seed,@garden_path])
+                  socket_send([:crop,:seed_all,$seed,@garden_path])
                   @seed_all = false
                 else
-                  socket_send([:crop,:row,$seed,@garden_path])
+                  socket_send([:crop,:harvest,$seed,@garden_path])
                 end
                 $seed = nil;
               else
