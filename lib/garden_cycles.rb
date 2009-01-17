@@ -80,22 +80,22 @@ class Garden
          @sprouts[message_block[2][:id]] = nil
          @crops[message_block[2][:id]] = message_block[2]
          if @harvest[message_block[2][:id]]
-           socket_send([message_block[0],:garden,message_block[2], @harvest[message_block[2][:id]][:client_socket_path]]) 
+           socket_send(message_block[0..2]+[@harvest[message_block[2][:id]][:client_socket_path]]) 
            @crops[message_block[2][:id]] = @harvest[message_block[2][:id]] = nil
          elsif @full_crop && @seeds.compact.empty? && @sprouts.compact.empty?
-           socket_send([message_block[0],:garden,@crops.compact,@mem_client_socket_path])
+           socket_send(message_block[0..1]+[@crops.compact,@mem_client_socket_path])
            @crops.clear; @full_crop = false
          end
        when :seed_all
          @seed_all_crop << message_block[2]
          if @seed_all_crop.size == @seed_all_message_block[1]
-           socket_send([message_block[0],:garden,@seed_all_crop, @seed_all_message_block[3]])
+           socket_send(message_block[0..1]+[@seed_all_crop, @seed_all_message_block[3]])
            @seed_all_message_block = nil; @seed_all_done = Array.new; @seed_all_crop = Array.new
          end
        when :init
          @init_all_crop << message_block[2]
          if @init_all_crop.size == @do_init
-           socket_send([message_block[0],:garden,@init_all_crop, @init_return[:client_socket_path]])
+           socket_send(message_block[0..1]+[@init_all_crop, @init_return[:client_socket_path]])
            @init_return = Hash.new; @init_done = Array.new; @do_init = nil; @init_all_crop = Array.new
          end
        end
