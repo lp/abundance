@@ -1,5 +1,8 @@
 class Garden
   class Rows
+    # The Paths module is a set of method used by the Rows's forks.
+    # You will not need to use these methods unless you plan on refactoring the Rows.
+    #
     # Author:: lp (mailto:lp@spiralix.org)
     # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
     # :title:Rows
