@@ -5,35 +5,35 @@ class Garden
   module Cycles
     
     def set_my_containers
-      @quit = false; @full_crop = false; @do_init = nil; @seed_all_message_block = nil; @init_all_crop = []
-      @harvest = []; @rows_socket_paths = []; @init_done = []; @seed_all_done = []; @seed_all_crop = []
+      @close_message_block = nil; @full_crop_message_block = nil; @init_message_block = nil; @seed_all_message_block = nil
+      @harvest_queue = []; @waiting_rows = []
       @seeds = []; @sprouts = []; @crops = []; @id = 0
     end
     
     def seed_if_row_available
        catch :fill_rows do
          loop do
-           if ! @seed_all_message_block.nil? && ! @rows_socket_paths.empty? && @seed_all_done.size != @seed_all_message_block[1]
-             row_socket_path = @rows_socket_paths.shift
-             unless @seed_all_done.include?( row_socket_path )
+           if @seed_all_message_block && ! @waiting_rows.empty? && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1]
+             row_socket_path = @waiting_rows.shift
+             unless @seed_all_message_block[4][:row_done].include?( row_socket_path )
                socket_send([:seed,:all,@seed_all_message_block[2],row_socket_path])
-               @seed_all_done << row_socket_path
+               @seed_all_message_block[4][:row_done] << row_socket_path
              else
-               @rows_socket_paths << row_socket_path
+               @waiting_rows << row_socket_path
              end
-           elsif ! @do_init.nil? && ! @rows_socket_paths.empty? && @init_done.size != @do_init
-             row_socket_path = @rows_socket_paths.shift
-             unless @init_done.include?( row_socket_path )
+           elsif @init_message_block && ! @waiting_rows.empty? && @init_message_block[4][:row_done].size != @init_message_block[2]
+             row_socket_path = @waiting_rows.shift
+             unless @init_message_block[4][:row_done].include?( row_socket_path )
                socket_send([:seed,:init,'init_status',row_socket_path])
-               @init_done << row_socket_path
+               @init_message_block[4][:row_done] << row_socket_path
              else
-               @rows_socket_paths << row_socket_path
+               @waiting_rows << row_socket_path
              end
-           elsif ! @seeds.empty? && ! @rows_socket_paths.empty?
+           elsif ! @seeds.empty? && ! @waiting_rows.empty?
              seed = @seeds.shift; @sprouts[seed[:id]] = seed
-             socket_send([:seed,:sprout,seed,@rows_socket_paths.shift])
-           elsif @quit && ! @rows_socket_paths.empty?
-             socket_send([:seed,:quit,nil,@rows_socket_paths.shift])
+             socket_send([:seed,:sprout,seed,@waiting_rows.shift])
+           elsif @close_message_block && ! @waiting_rows.empty?
+             socket_send([:seed,:quit,nil,@waiting_rows.shift])
            else
              throw :fill_rows
            end               
@@ -48,20 +48,21 @@ class Garden
          message_block[2] = @id; socket_send(message_block)
        else
          @seed_all_message_block = Array.new(message_block)
+         @seed_all_message_block[4] = {:row_done => [], :crops => []}
        end
      end
      
      def this_row_is_available(message_block)
-       if @quit
+       if @close_message_block
          message_block = [:row, :quit, nil, message_block[3]]
-       elsif ! @seed_all_message_block.nil? && @seed_all_done.size != @seed_all_message_block[1] && ! @seed_all_done.include?( message_block[3] )
+       elsif @seed_all_message_block && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1] && ! @seed_all_message_block[4][:row_done].include?( message_block[3] )
          message_block = [:row, :all, @seed_all_message_block[2], message_block[3]]
-         @seed_all_done << message_block[3]
-       elsif ! @do_init.nil? && @init_done.size != @do_init && ! @init_done.include?( message_block[3] )
+         @seed_all_message_block[4][:row_done] << message_block[3]
+       elsif @init_message_block && @init_message_block[4][:row_done].size != @init_message_block[2] && ! @init_message_block[4][:row_done].include?( message_block[3] )
          message_block = [:row, :init, 'init_status', message_block[3]]
-         @init_done << message_block[3]
+         @init_message_block[4][:row_done] << message_block[3]
        elsif @seeds.empty?
-         @rows_socket_paths << message_block[2]
+         @waiting_rows << message_block[2]
          message_block = [:row, :wait, nil, message_block[3]]
        else
          seed = @seeds.shift; @sprouts[seed[:id]] = seed
@@ -75,24 +76,24 @@ class Garden
        when :harvest
          @sprouts[message_block[2][:id]] = nil
          @crops[message_block[2][:id]] = message_block[2]
-         if @harvest[message_block[2][:id]]
-           socket_send(message_block[0..2]+[@harvest[message_block[2][:id]][:client_socket_path]]) 
-           @crops[message_block[2][:id]] = @harvest[message_block[2][:id]] = nil
-         elsif @full_crop && @seeds.compact.empty? && @sprouts.compact.empty?
-           socket_send(message_block[0..1]+[@crops.compact,@mem_client_socket_path])
-           @crops.clear; @full_crop = false
+         if @harvest_queue[message_block[2][:id]]
+           socket_send(message_block[0..2]+[@harvest_queue[message_block[2][:id]]]) 
+           @crops[message_block[2][:id]] = @harvest_queue[message_block[2][:id]] = nil
+         elsif @full_crop_message_block && @seeds.compact.empty? && @sprouts.compact.empty?
+           socket_send(message_block[0..1]+[@crops.compact,@full_crop_message_block[3]])
+           @crops.clear; @full_crop_message_block = nil
          end
        when :seed_all
-         @seed_all_crop << message_block[2]
-         if @seed_all_crop.size == @seed_all_message_block[1]
-           socket_send(message_block[0..1]+[@seed_all_crop, @seed_all_message_block[3]])
-           @seed_all_message_block = nil; @seed_all_done = Array.new; @seed_all_crop = Array.new
+         @seed_all_message_block[4][:crops] << message_block[2]
+         if @seed_all_message_block[4][:crops].size == @seed_all_message_block[1]
+           @seed_all_message_block[2] = @seed_all_message_block[4][:crops]; @seed_all_message_block[4] = nil
+           socket_send(@seed_all_message_block.compact); @seed_all_message_block = nil
          end
        when :init
-         @init_all_crop << message_block[2]
-         if @init_all_crop.size == @do_init
-           socket_send(message_block[0..1]+[@init_all_crop, @init_return[:client_socket_path]])
-           @init_return = Hash.new; @init_done = Array.new; @do_init = nil; @init_all_crop = Array.new
+         @init_message_block[4][:crops] << message_block[2]
+         if @init_message_block[4][:crops].size == @init_message_block[2]
+           @init_message_block[2] = @init_message_block[4][:crops]; @init_message_block[4] = nil
+           socket_send(@init_message_block.compact); @init_message_block = nil
          end
        end
      end
@@ -123,7 +124,7 @@ class Garden
              socket_send(message_block[0..1]+[@crops[message_block[2]],message_block[3]])
              @crops[message_block[2]] = nil
            else
-             @harvest[message_block[2]] = {:client_socket_path => message_block[3]}
+             @harvest_queue[message_block[2]] = message_block[3]
            end
          else
            message_block[2] = false; socket_send(message_block)
@@ -141,12 +142,11 @@ class Garden
          if @seeds.compact.empty? && @sprouts.compact.empty?
            message_block[2] = @crops.compact; socket_send(message_block); @crops.clear
          else
-           @full_crop = true
-           @mem_client_socket_path = message_block[3]
+           @full_crop_message_block = Array.new(message_block)
          end
        when :init
-         @do_init = message_block[2]
-         @init_return = {:client_socket_path => message_block[3]}
+         @init_message_block = Array.new(message_block)
+         @init_message_block[4] = {:row_done => [], :crops => []}
        else
          message_block[2] = false; socket_send(message_block)
        end
@@ -155,7 +155,6 @@ class Garden
      def close_all(message_block)
        case message_block[1]
        when :garden
-         @quit = true
          @close_message_block = Array.new(message_block)
        when :row
          @close_message_block[2].delete(message_block[2].to_i)
