@@ -15,7 +15,7 @@
 # :title:Garden
 
 class Garden
-  require 'garden_rows'
+  require 'rows'
   require 'garden_cycles'
   include Cycles
   require 'toolshed'
