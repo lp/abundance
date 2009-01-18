@@ -9,7 +9,7 @@
 # 
 # And not:
 # * a replacement for Thread.new invocations
-# * a replacement for Thread friendly programming languages like Erlang
+# * a replacement for concurrent programming languages like Erlang
 # 
 # Its initial implementation uses:
 # * pure ruby
