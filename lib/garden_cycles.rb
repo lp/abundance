@@ -1,13 +1,17 @@
 class Garden
+  # The Cycles module is a set of method used by the Garden's fork.
+  # You will not need to use these methods unless you plan on refactoring the Garden.
+  # 
   # Author:: lp (mailto:lp@spiralix.org)
   # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
   # :title:Cycles
   module Cycles
     
     def set_my_containers
-      @close_message_block = nil; @full_crop_message_block = nil; @init_message_block = nil; @seed_all_message_block = nil
-      @harvest_queue = []; @waiting_rows = []
-      @seeds = []; @sprouts = []; @crops = []; @id = 0
+      @close_message_block = nil; @full_crop_message_block = nil
+      @init_message_block = nil; @seed_all_message_block = nil
+      @harvest_queue = []; @waiting_rows = []; @id = 0
+      @seeds = []; @sprouts = []; @crops = []
     end
     
     def seed_if_row_available
