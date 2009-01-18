@@ -20,6 +20,8 @@ class Garden
   # :title:Rows
   
   class Rows
+    require 'rows_paths'
+    include Paths
     require 'toolshed'
     include Toolshed
     attr_reader :pids
