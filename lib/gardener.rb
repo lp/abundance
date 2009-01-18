@@ -101,15 +101,17 @@ class Gardener
   # It has two different behaviour on queue data, one for ripe elements where it removes them from crop array ( on _seedID_ and :crop invocations ),
   # for all other methods of invocation it leaves the queue intact.
   # === Parameter
-  # The parameter given as a symbol specifies the level of queue results you wish to get:
-  # * seedID = return the result for a specific seed, if seed hasn't processed it wait until completed, _seedID_ is removed from crop array
+  # The option given as a symbol specifies the level of queue results you wish to get:
   # * :crop = return an array of seed for which process has completed, empties the crop array.
   # * :sprout = return an array of seed actually processing
   # * :seed = return an array of seed waiting to be processed
   # * :all = return a hash of respective arrays for crops, sprouts and seeds
   # * :full_crop = wait for all seeds to be done processing, then returns as in :crop.
+  # * :one = return the result for a specific seed, if seed hasn't processed it wait until completed, _seed_id_ is removed from crop array
+  # When specifying :one as option, a seed ID is also required:
+  # * _seedID_ = the id as returned by the +seed+ method
   # === Example
-  #  seed1_result = gardener.harvest(id_seed_1)
+  #  seed1_result = gardener.harvest(:one,id_seed_1)
   
   def harvest(option,seed_id=nil)
     message_block = socket_duplex([:harvest,option,seed_id,@garden_path])

@@ -71,8 +71,8 @@ class Abundance
   #  id1 = gardener.seed('command1')
   #  id2 = gardener.seed('command2')
   # 
-  #  result1 = gardener.harvest(id1)
-  #  result2 = gardener.harvest(id2)
+  #  result1 = gardener.harvest(:one,id1)
+  #  result2 = gardener.harvest(:one,id2)
   # 
   #  # with many more seeds over here
   # 
