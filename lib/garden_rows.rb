@@ -44,7 +44,6 @@ class Garden
       @pids = []
       rows.times do
         @pids << fork do
-          @seed_all = false
           set_my_socket_as_a(:row,garden_pid)
           t1 = Thread.new do
             gardener_block.call
@@ -56,40 +55,28 @@ class Garden
                 message_block = socket_duplex([:row,:row,my_socket_path,@garden_path])
                 case message_block[1]
                 when :sprout
-                  $seed = message_block[2]
+                  sprout(message_block)
                 when :all
-                  @seed_all = true
-                  $seed = {:id => Process.pid, :seed => message_block[2]}
+                  all(message_block)
                 when :wait
                   message_block = socket_recv
                   case message_block[1]
                   when :sprout
-                    $seed = message_block[2]
+                    sprout(message_block)
                   when :all
-                    @seed_all = true
-                    $seed = {:id => Process.pid, :seed => message_block[2]}
+                    all(message_block)
                   when :init
-                    $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
-                    socket_send([:crop,:init,$init,@garden_path])
+                    init
                   when :quit
-                    socket_send([:close,:row,Process.pid,@garden_path])
-                    exit
+                    quit
                   end
                 when :init
-                  $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
-                  socket_send([:crop,:init,$init,@garden_path])
+                  init
                 when :quit
-                  socket_send([:close,:row,Process.pid,@garden_path])
-                  exit
+                  quit
                 end
-              elsif ! $seed[:success].nil?
-                if @seed_all
-                  socket_send([:crop,:seed_all,$seed,@garden_path])
-                  @seed_all = false
-                else
-                  socket_send([:crop,:harvest,$seed,@garden_path])
-                end
-                $seed = nil;
+              elsif $seed[:success]
+                crop
               else
                 t1.run
               end
