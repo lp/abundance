@@ -78,14 +78,14 @@ class TestHighAPI < Test::Unit::TestCase
   
   def check_seed_harvest
     id = @g.seed(Process.pid)
-    assert_kind_of(Integer,id)
+    assert_kind_of(Integer,id,"seed method failed returning and Integer")
     
     answer = @g.harvest(:one,id)
-    assert_kind_of(Hash,answer)
-    assert_equal(Process.pid,answer[:seed])
-    assert_equal(id,answer[:id])
-    assert_equal(true,answer[:success])
-    assert_equal("gardener: #{Process.pid}",answer[:message])
+    assert_kind_of(Hash,answer,"harvest :one method failed to return a seed Hash, got #{answer.inspect} instead.")
+    assert_equal(Process.pid,answer[:seed], "harvesting showed a problem with seeding flow, seed[:seed] had wrong return value")
+    assert_equal(id,answer[:id], "harvesting showed a problem with seeding flow, seed[:id] had wrong return value")
+    assert_equal(true,answer[:success], "harvesting showed a problem with seeding flow, seed[:success] had wrong return value")
+    assert_equal("gardener: #{Process.pid}",answer[:message], "harvesting showed a problem with seeding flow, seed[:message] had wrong return value")
   end
   
   def check_full_harvest
@@ -94,7 +94,7 @@ class TestHighAPI < Test::Unit::TestCase
       queue_items[num] = @g.seed(num)
     end
     full_crop = @g.harvest(:full_crop)
-    assert_equal(25,full_crop.size)
+    assert_equal(25,full_crop.size, "a :full_crop harvest has shown some seeds were lost during processing")
     results = []
     queue_items.each do |num,id|
       success = false
@@ -103,20 +103,20 @@ class TestHighAPI < Test::Unit::TestCase
       end
       results << success
     end
-    assert(results[0] == true && results.uniq.size == 1)
+    assert(results[0] == true && results.uniq.size == 1, "a :full_crop harvest has shown processing to be inconsistent amongst rows")
   end
   
   def check_growth
     progress = @g.growth(:progress)
-    assert_kind_of(String,progress)
-    assert(progress.to_f >= 0 && progress.to_f <= 1)
+    assert_kind_of(String,progress, "the growth :progress method doesn't return proper value")
+    assert(progress.to_f >= 0 && progress.to_f <= 1, "the growth :progress method doesn't return a value between 0 and 1")
     
     seeds_growth = @g.growth(:seed)
-    assert_kind_of(Integer,seeds_growth)
+    assert_kind_of(Integer,seeds_growth, "the growth :seed method doesn't return proper value")
     sprouts_growth = @g.growth(:sprout)
-    assert_kind_of(Integer,sprouts_growth)
+    assert_kind_of(Integer,sprouts_growth, "the growth :sprout method doesn't return proper value")
     crops_growth = @g.growth(:crop)
-    assert_kind_of(Integer,crops_growth)
+    assert_kind_of(Integer,crops_growth, "the growth :crop method doesn't return proper value")
   end
   
   def check_deep_harvest
@@ -126,11 +126,11 @@ class TestHighAPI < Test::Unit::TestCase
     end
     
     all = @g.harvest(:all)
-    assert_kind_of(Hash,all)
-    assert_equal(25,all[:seeds].size + all[:sprouts].size + all[:crops].size)
-    seeds_harvest = @g.harvest(:seed); assert_kind_of(Array,seeds_harvest)
-    sprouts_harvest = @g.harvest(:sprout); assert_kind_of(Array,sprouts_harvest)
-    crops_harvest = @g.harvest(:crop); assert_kind_of(Array,crops_harvest)
+    assert_kind_of(Hash,all, "the harvest :all method doesn't return a Hash as supposed")
+    assert_equal(25,all[:seeds].size + all[:sprouts].size + all[:crops].size, "the harvest :all method returns a total of items not coherent with amount of seeded items")
+    seeds_harvest = @g.harvest(:seed); assert_kind_of(Array,seeds_harvest, "the harvest :seed method doesn't return an Array as supposed")
+    sprouts_harvest = @g.harvest(:sprout); assert_kind_of(Array,sprouts_harvest, "the harvest :sprout method doesn't return an Array as supposed")
+    crops_harvest = @g.harvest(:crop); assert_kind_of(Array,crops_harvest, "the harvest :crop method doesn't return an Array as supposed")
     results = []
     queue_items.each do |num,id|
       success = false
@@ -145,14 +145,14 @@ class TestHighAPI < Test::Unit::TestCase
       end
       results << success
     end
-    assert(results[0] == true && results.uniq.size == 1)
+    assert(results[0] == true && results.uniq.size == 1, "the harvest :all method has shown processing to be inconsistent amongst rows")
   end
   
   def check_seed_all
     all = @g.seed_all("all")
-    assert_equal(@rows,all.size)
+    assert_equal(@rows,all.size, "the seed_all method has missed some rows in its seeding, harvesting, or both")
     all.map! { |seed| seed[:message] == "gardener: all" }
-    assert( all.uniq.size == 1 && all[0] == true )
+    assert( all.uniq.size == 1 && all[0] == true, "the seed_all method shows an inconsistency amongst row processing")
   end
   
 end
