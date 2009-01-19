@@ -43,9 +43,11 @@ class TestHighAPI < Test::Unit::TestCase
     answer1 = @g1.harvest(:one,id1)
     answer2 = @g2.harvest(:one,id2)
     
-    assert(answer1[:message] != answer2[:message])
-    assert(answer1[:message] =~ /gardener1.*/)
-    assert(answer2[:message] =~ /gardener2.*/)
+    assert_not_equal(answer1[:message],answer2[:message], "trouble getting two gardeners have their own answers... maybe it only one after all!")
+    assert_match(/gardener1.*/, answer1[:message], "looks like one of the gardener has got its answer wrong")
+    assert_match(/gardener2.*/, answer2[:message], "looks like one of the gardener has got its answer wrong")
+    assert_no_match(/gardener2.*/, answer1[:message], "looks like the gardeners are having trouble keeping their identities, one reference the other")
+    assert_no_match(/gardener1.*/, answer2[:message], "looks like the gardeners are having trouble keeping their identities, one reference the other")
   end
   
 end
