@@ -37,7 +37,11 @@ class TestHighAPI < Test::Unit::TestCase
     @g = Abundance.gardener(:rows => @rows, :init_timeout => 3) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|
-        seed.crop(true, "gardener: #{seed.sprout}")
+        if seed.sprout.nil?
+          seed.crop(false, "gardener has no seed")
+        else
+          seed.crop(true, "gardener: #{seed.sprout}")
+        end
       end      
     end
   end
@@ -45,7 +49,8 @@ class TestHighAPI < Test::Unit::TestCase
   def reality_check
     assert_instance_of(Gardener,@g)
     
-    check_init          
+    check_init
+    check_false     
     check_seed_harvest      # leaves no crops in the queue
     check_full_harvest         # also leaves no crops in the queue
     check_deep_harvest    # may leave crap behind, so needs to come last of the harvest
@@ -63,6 +68,12 @@ class TestHighAPI < Test::Unit::TestCase
       assert_not_equal(Process.pid,init[:message])
       assert_equal(init[:message],init[:pid])
     end
+  end
+  
+  def check_false
+    id = @g.seed(nil)
+    answer = @g.harvest(:one,id)
+    assert_equal(false,answer[:success])
   end
   
   def check_seed_harvest
