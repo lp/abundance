@@ -75,7 +75,7 @@ class Garden
                 when :quit
                   quit
                 end
-              elsif $seed[:success]
+              elsif ! $seed[:success].nil?
                 crop
               else
                 t1.run
