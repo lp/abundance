@@ -24,11 +24,11 @@ class TestHighAPI < Test::Unit::TestCase
   
   def teardown
     final = @g.close
-    assert_kind_of(Hash,final)
-    assert_equal(3,final.size)
-    assert_not_nil(final[:seeds])
-    assert_not_nil(final[:sprouts])
-    assert_not_nil(final[:crops])
+    assert_kind_of(Hash,final,"close method didn't return a Hash, it returned: #{final.inspect}")
+    assert_equal(3,final.size,"Hash returned on close has wrong size, here it is: #{final.inspect}")
+    assert_not_nil(final[:seeds],"close Hash has Nil value for :seeds instead of an Array")
+    assert_not_nil(final[:sprouts],"close Hash has Nil value for :sprouts instead of an Array")
+    assert_not_nil(final[:crops],"close Hash has Nil value for :crops instead of an Array")
   end
   
   private
@@ -61,19 +61,19 @@ class TestHighAPI < Test::Unit::TestCase
   
   def check_init
     @g.init_status.each do |init|
-      assert_not_nil(init[:message])
-      assert_not_nil(init[:success])
-      assert_not_nil(init[:pid])
+      assert_not_nil(init[:message],"init :message value is Nil instead of String")
+      assert_not_nil(init[:success],"init :success value is Nil instead of True || False")
+      assert_not_nil(init[:pid],"init :pid value is Nil instead of Numeric")
     
-      assert_not_equal(Process.pid,init[:message])
-      assert_equal(init[:message],init[:pid])
+      assert_not_equal(Process.pid,init[:message],"init has same pid than test process, something has gone wrong in the forking...")
+      assert_equal(init[:message],init[:pid],"init :pid should be the row pid, it isn't")
     end
   end
   
   def check_false
     id = @g.seed(nil)
     answer = @g.harvest(:one,id)
-    assert_equal(false,answer[:success])
+    assert_equal(false,answer[:success],"failed returning a seed for which :success value was false")
   end
   
   def check_seed_harvest
