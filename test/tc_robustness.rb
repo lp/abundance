@@ -2,7 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 require 'test/unit'
 require 'abundance'
 
-class TestHighAPI < Test::Unit::TestCase
+class TestRobustness < Test::Unit::TestCase
   
   def test_abundance_robust
     @seed_size = 124

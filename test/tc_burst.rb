@@ -2,7 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 require 'test/unit'
 require 'abundance'
 
-class TestHighAPI < Test::Unit::TestCase
+class TestBurst < Test::Unit::TestCase
   
   def test_burst1
     check_init
