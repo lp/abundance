@@ -22,7 +22,7 @@ class Garden
       end
       
       def init
-        $init = {:seed => 'init_status', :message => 'No Init Message', :id => Process.pid} if $init.nil?
+        $init = {:seed => 'init_status', :success => false, :message => 'No Init Message', :id => Process.pid} if $init.nil?
         socket_send([:crop,:init,$init,@garden_path])
       end
       
