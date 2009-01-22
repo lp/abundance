@@ -32,12 +32,15 @@ module Toolshed
     case role
     when :garden
       set_my_socket(Process.pid.to_s)
+      @reader = {:sockets => [@my_socket], :buffer => {}}
+      @writer = {:sockets => [], :buffer => {}}
     when :gardener
       set_garden_path(garden_pid)
       set_my_socket(Process.pid.to_s + Time.now.to_i.to_s + rand(10000).to_s)
     else
       set_garden_path(garden_pid)
       set_my_socket(Process.pid.to_s)
+      request_private_socket
     end
   end
   
@@ -63,12 +66,59 @@ module Toolshed
   # * _server_socket_path_ = a UNIXServer socket path for the packets to be sent to
   def socket_duplex(message_block)
     send_block(message_block)
-    Marshal.load(recv_whole_block)
+    client = @my_socket.accept
+    recv_whole_block(client)
   end
   
   # The +socket_recv+ method calls _accept_ on a UNIXServer socket, receives all the packets from a UNIXSocket sender, join the packets back as the original block message.
   def socket_recv
-    Marshal.load(recv_whole_block)
+    client = @my_socket.accept
+    recv_whole_block(client)
+  end
+  
+  def add_readable(socket)
+    client = socket.accept
+    @readers[:sockets] << client
+  end
+  
+  def add_writable(message_block)
+    client = UNIXSocket.open(message_block[3])
+    @writer[:sockets] << client
+    @writer[:buffer][message_block[3]] = Marshal.dump(message_block)
+  end
+  
+  def remove_writable(client)
+    @writer[:sockets].delete(client)
+    @writer[:buffer].delete(client.path)
+    client.close
+  end
+  
+  def read_raw(client)
+    client.recvfrom(@@block_size)[0]
+  end
+  
+  def write_raw(client)
+    client.send(@writer[:buffer][client.path].slice!(0..@@blocksize-1))
+  end
+  
+  def read_message_block(client)
+    recv_whole_block(client)
+  end
+  
+  def request_private_socket(role)
+    message_block = [:request_private, role, Process.pid, @garden_path]
+    send_block(message_block)
+    @private_socket_path = private_path(@garden_path,Process.pid)
+  end
+  
+  def set_private_socket(client_pid)
+     private_socket_path = private_path(@my_socket_path,client_pid)
+     private_socket = UNIXServer.open(private_socket_path)
+     @reader[:sockets] << private_socket; @reader[:buffer][private_socket_path] = nil
+   end
+  
+  def private_path(garden_path,client_pid)
+    garden_path + '_' + client_pid.to_s
   end
     
   private 
@@ -96,26 +146,6 @@ module Toolshed
     @garden_path = socket_path(garden_pid.to_s)
   end
   
-  # The +recv_whole_block+ method loops receiving a sent block as packets, rebuilding the whole block and joining it.
-  def recv_whole_block
-    begin
-      client = @my_socket.accept; block = []
-      catch :whole_block do
-        loop do
-          packet = client.recvfrom(@@block_size)[0]
-          if packet == ''
-            throw :whole_block
-          else
-            block << packet
-          end
-        end
-      end
-      return block.join
-    rescue Errno::EADDRINUSE
-      retry
-    end
-  end
-  
   # The +send_block+ method sends a block to a server socket.
   # === Parameters
   # * _command_ = command part of the sent packet
@@ -129,6 +159,26 @@ module Toolshed
     rescue Errno::EADDRINUSE
       retry
     rescue Errno::ECONNREFUSED
+      retry
+    end
+  end
+  
+  # The +recv_whole_block+ method loops receiving a sent block as packets, rebuilding the whole block and joining it.
+  def recv_whole_block(client)
+    block = []
+    begin
+      catch :whole_block do
+        loop do
+          packet = client.recvfrom(@@block_size)[0]
+          if packet.empty?
+            throw :whole_block
+          else
+            block << packet
+          end
+        end
+      end
+      return Marshal.load(block.join)
+    rescue Errno::EADDRINUSE
       retry
     end
   end

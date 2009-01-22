@@ -10,8 +10,57 @@ class Garden
     def set_my_containers
       @close_message_block = nil; @full_crop_message_block = nil
       @init_message_block = nil; @seed_all_message_block = nil
-      @harvest_queue = []; @waiting_rows = []; @id = 0
-      @seeds = []; @sprouts = []; @crops = []
+      @harvest_queue = []; @waiting_rows = []; @message_block_queue = []
+      @seeds = []; @sprouts = []; @crops = []; @id = 0
+    end
+    
+    def parse_readable(readable)
+      readable.each do |i_socket|
+        if i_socket == @my_socket
+          add_readable(i_socket)
+        elsif i_socket.path == @my_socket_path
+          readable_main(i_socket)
+        else
+          readable_private(i_socket)
+        end
+      end
+    end
+    
+    def parse_writable(writable)
+      writable.each do |o_socket|
+        if @writer[:buffer][o_socket.path].empty?
+          remove_writable(o_socket)
+        else
+          write_raw(o_socket)
+        end
+      end
+    end
+    
+    def parse_message_blocks
+      temp_queue = Array.new(@message_block_queue)
+      @message_block_queue = []
+      until temp_queue.empty?
+        message_block = queue.shift
+        case message_block[0]
+        when :seed
+          place_seed_in_queue(message_block)
+        when :row
+          this_row_is_available(message_block)  
+        when :crop
+          save_crop_for(message_block)
+        when :growth
+          report_growth(message_block)
+        when :harvest
+          harvest_some(message_block)
+        when :request_private
+          set_private_socket(message_block[2])
+        when :close
+          close_all(message_block)
+        else
+          message_block[2] = false
+          add_writable(message_block)
+        end
+      end
     end
     
     def seed_if_row_available
@@ -20,7 +69,7 @@ class Garden
            if @seed_all_message_block && ! @waiting_rows.empty? && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1]
              row_socket_path = @waiting_rows.shift
              unless @seed_all_message_block[4][:row_done].include?( row_socket_path )
-               socket_send([:seed,:all,@seed_all_message_block[2],row_socket_path])
+               add_writable([:seed,:all,@seed_all_message_block[2],row_socket_path])
                @seed_all_message_block[4][:row_done] << row_socket_path
              else
                @waiting_rows << row_socket_path
@@ -28,16 +77,16 @@ class Garden
            elsif @init_message_block && ! @waiting_rows.empty? && @init_message_block[4][:row_done].size != @init_message_block[2]
              row_socket_path = @waiting_rows.shift
              unless @init_message_block[4][:row_done].include?( row_socket_path )
-               socket_send([:seed,:init,'init_status',row_socket_path])
+               add_writable([:seed,:init,'init_status',row_socket_path])
                @init_message_block[4][:row_done] << row_socket_path
              else
                @waiting_rows << row_socket_path
              end
            elsif ! @seeds.empty? && ! @waiting_rows.empty?
              seed = @seeds.shift; @sprouts[seed[:id]] = seed
-             socket_send([:seed,:sprout,seed,@waiting_rows.shift])
+             add_writable([:seed,:sprout,seed,@waiting_rows.shift])
            elsif @close_message_block && ! @waiting_rows.empty?
-             socket_send([:seed,:quit,nil,@waiting_rows.shift])
+             add_writable([:seed,:quit,nil,@waiting_rows.shift])
            else
              throw :fill_rows
            end               
@@ -45,11 +94,28 @@ class Garden
        end
      end
      
+     private
+     
+     def readable_main(i_socket)
+       message_block = read_message_block(i_socket)
+       @message_block_queue << message_block
+     end
+
+     def readable_private(i_socket)
+       packet = read_raw(i_socket)
+       if packet.empty?
+         @message_block_queue << @reader[:buffer][i_socket.path].join
+       else
+         @reader[:buffer][i_socket.path] = [] if @reader[:buffer][i_socket.path].nil?
+         @reader[:buffer][i_socket.path] << packet
+       end
+     end
+     
      def place_seed_in_queue(message_block)
        case message_block[1]
        when :one
          @id += 1; @seeds << {:id => @id , :seed => message_block[2]}
-         message_block[2] = @id; socket_send(message_block)
+         message_block[2] = @id; add_writable(message_block)
        else
          @seed_all_message_block = Array.new(message_block)
          @seed_all_message_block[4] = {:row_done => [], :crops => []}
@@ -72,7 +138,7 @@ class Garden
          seed = @seeds.shift; @sprouts[seed[:id]] = seed
          message_block = [:row, :sprout, seed, message_block[3]]
        end
-       socket_send(message_block)
+       add_writable(message_block)
      end
      
      def save_crop_for(message_block)
@@ -81,23 +147,23 @@ class Garden
          @sprouts[message_block[2][:id]] = nil
          @crops[message_block[2][:id]] = message_block[2]
          if @harvest_queue[message_block[2][:id]]
-           socket_send(message_block[0..2]+[@harvest_queue[message_block[2][:id]]]) 
+           add_writable(message_block[0..2]+[@harvest_queue[message_block[2][:id]]]) 
            @crops[message_block[2][:id]] = @harvest_queue[message_block[2][:id]] = nil
          elsif @full_crop_message_block && @seeds.compact.empty? && @sprouts.compact.empty?
-           socket_send(message_block[0..1]+[@crops.compact,@full_crop_message_block[3]])
+           add_writable(message_block[0..1]+[@crops.compact,@full_crop_message_block[3]])
            @crops.clear; @full_crop_message_block = nil
          end
        when :seed_all
          @seed_all_message_block[4][:crops] << message_block[2]
          if @seed_all_message_block[4][:crops].size == @seed_all_message_block[1]
            @seed_all_message_block[2] = @seed_all_message_block[4][:crops]; @seed_all_message_block[4] = nil
-           socket_send(@seed_all_message_block.compact); @seed_all_message_block = nil
+           add_writable(@seed_all_message_block.compact); @seed_all_message_block = nil
          end
        when :init
          @init_message_block[4][:crops] << message_block[2]
          if @init_message_block[4][:crops].size == @init_message_block[2]
            @init_message_block[2] = @init_message_block[4][:crops]; @init_message_block[4] = nil
-           socket_send(@init_message_block.compact); @init_message_block = nil
+           add_writable(@init_message_block.compact); @init_message_block = nil
          end
        end
      end
@@ -117,7 +183,7 @@ class Garden
        else
          message_block[2] = false
        end
-       socket_send(message_block)
+       add_writable(message_block)
      end
      
      def harvest_some(message_block)
@@ -125,26 +191,26 @@ class Garden
        when :one
          unless message_block[2].nil?
            if @crops[message_block[2]]
-             socket_send(message_block[0..1]+[@crops[message_block[2]],message_block[3]])
+             add_writable(message_block[0..1]+[@crops[message_block[2]],message_block[3]])
              @crops[message_block[2]] = nil
            else
              @harvest_queue[message_block[2]] = message_block[3]
            end
          else
-           message_block[2] = false; socket_send(message_block)
+           message_block[2] = false; add_writable(message_block)
          end
        when :all
          message_block[2] = {:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}
-         socket_send(message_block)
+         add_writable(message_block)
        when :seed
-         message_block[2] = @seeds; socket_send(message_block)
+         message_block[2] = @seeds; add_writable(message_block)
        when :sprout
-         message_block[2] = @sprouts.compact; socket_send(message_block)
+         message_block[2] = @sprouts.compact; add_writable(message_block)
        when :crop
-         message_block[2] = @crops.compact; socket_send(message_block); @crops.clear
+         message_block[2] = @crops.compact; add_writable(message_block); @crops.clear
        when :full_crop
          if @seeds.compact.empty? && @sprouts.compact.empty?
-           message_block[2] = @crops.compact; socket_send(message_block); @crops.clear
+           message_block[2] = @crops.compact; add_writable(message_block); @crops.clear
          else
            @full_crop_message_block = Array.new(message_block)
          end
@@ -152,7 +218,7 @@ class Garden
          @init_message_block = Array.new(message_block)
          @init_message_block[4] = {:row_done => [], :crops => []}
        else
-         message_block[2] = false; socket_send(message_block)
+         message_block[2] = false; add_writable(message_block)
        end
      end
            
@@ -164,7 +230,7 @@ class Garden
          @close_message_block[2].delete(message_block[2].to_i)
          if @close_message_block[2].empty?
            @close_message_block[2] = {:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}
-           socket_send(@close_message_block)
+           add_writable(@close_message_block)
            exit
          end
        end
