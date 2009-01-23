@@ -28,7 +28,7 @@ class Garden
     
     def parse_writable(writable)
       writable.each do |o_socket|
-        if @writer[:buffer][o_socket.peeraddr] == ''
+        if @writer[:buffer][o_socket.to_s] == '' || @writer[:buffer][o_socket.to_s] == nil
           remove_writable(o_socket)
         else
           write_raw(o_socket)
@@ -74,10 +74,10 @@ class Garden
      def readable_private(i_socket)
        packet = read_raw(i_socket)
        if packet == ''
-         @message_block_queue << @reader[:buffer][i_socket.path].join
+         @message_block_queue << @reader[:buffer][i_socket.to_s].join
        else
-         @reader[:buffer][i_socket.path] = [] if @reader[:buffer][i_socket.path].nil?
-         @reader[:buffer][i_socket.path] << packet
+         @reader[:buffer][i_socket.to_s] = [] if @reader[:buffer][i_socket.to_s].nil?
+         @reader[:buffer][i_socket.to_s] << packet
        end
      end
      

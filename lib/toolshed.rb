@@ -82,12 +82,12 @@ module Toolshed
   def add_writable(message_block)
     client = UNIXSocket.open(message_block[3])
     @writer[:sockets] << client
-    @writer[:buffer][client.peeraddr] = Marshal.dump(message_block)
+    @writer[:buffer][client.to_s] = Marshal.dump(message_block)
   end
   
   def remove_writable(client)
     @writer[:sockets].delete(client)
-    @writer[:buffer].delete(client.peeraddr)
+    @writer[:buffer].delete(client.to_s)
     client.close
   end
   
@@ -96,7 +96,7 @@ module Toolshed
   end
   
   def write_raw(client)
-    client.send(@writer[:buffer][client.peeraddr].slice!(0..@@block_size-1),0)
+    client.send(@writer[:buffer][client.to_s].slice!(0..@@block_size-1),0)
   end
   
   def read_message_block(client)
@@ -114,7 +114,7 @@ module Toolshed
   def set_private_socket(client_pid)
      private_socket_path = private_path(@my_socket_path,client_pid)
      private_socket = UNIXServer.open(private_socket_path)
-     @reader[:sockets] << private_socket; @reader[:buffer][private_socket_path] = nil
+     @reader[:sockets] << private_socket
    end
   
   def private_path(garden_path,client_pid)
