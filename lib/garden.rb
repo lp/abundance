@@ -47,27 +47,6 @@ class Garden
           
           parse_message_blocks
         end
-        
-        # seed_if_row_available
-        #         
-        #         message_block = socket_recv
-        #         case message_block[0]
-        #         when :seed
-        #           place_seed_in_queue(message_block)
-        #         when :row
-        #           this_row_is_available(message_block)  
-        #         when :crop
-        #           save_crop_for(message_block)
-        #         when :growth
-        #           report_growth(message_block)
-        #         when :harvest
-        #           harvest_some(message_block)
-        #         when :close
-        #           close_all(message_block)
-        #         else
-        #           message_block[2] = false
-        #           socket_send(message_block)
-        #         end
       end
     end
   end

@@ -37,10 +37,10 @@ module Toolshed
     when :gardener
       set_garden_path(garden_pid)
       set_my_socket(Process.pid.to_s + Time.now.to_i.to_s + rand(10000).to_s)
-    else
+    when :row
       set_garden_path(garden_pid)
       set_my_socket(Process.pid.to_s)
-      request_private_socket
+      request_private_socket(:row)
     end
   end
   
@@ -66,30 +66,28 @@ module Toolshed
   # * _server_socket_path_ = a UNIXServer socket path for the packets to be sent to
   def socket_duplex(message_block)
     send_block(message_block)
-    client = @my_socket.accept
-    recv_whole_block(client)
+    recv_whole_block_perm
   end
   
   # The +socket_recv+ method calls _accept_ on a UNIXServer socket, receives all the packets from a UNIXSocket sender, join the packets back as the original block message.
   def socket_recv
-    client = @my_socket.accept
-    recv_whole_block(client)
+    recv_whole_block_perm
   end
   
   def add_readable(socket)
     client = socket.accept
-    @readers[:sockets] << client
+    @reader[:sockets] << client
   end
   
   def add_writable(message_block)
     client = UNIXSocket.open(message_block[3])
     @writer[:sockets] << client
-    @writer[:buffer][message_block[3]] = Marshal.dump(message_block)
+    @writer[:buffer][client.peeraddr] = Marshal.dump(message_block)
   end
   
   def remove_writable(client)
     @writer[:sockets].delete(client)
-    @writer[:buffer].delete(client.path)
+    @writer[:buffer].delete(client.peeraddr)
     client.close
   end
   
@@ -98,11 +96,13 @@ module Toolshed
   end
   
   def write_raw(client)
-    client.send(@writer[:buffer][client.path].slice!(0..@@blocksize-1))
+    client.send(@writer[:buffer][client.peeraddr].slice!(0..@@block_size-1),0)
   end
   
   def read_message_block(client)
-    recv_whole_block(client)
+    message_block = recv_whole_block(client)
+    @reader[:sockets].delete(client) if @reader[:sockets].include?(client)
+    message_block
   end
   
   def request_private_socket(role)
@@ -154,7 +154,8 @@ module Toolshed
   def send_block(message_block)
     begin
       client = UNIXSocket.open(message_block[3])
-      client.send(Marshal.dump(message_block[0..2] + [@my_socket_path]),0)
+      block = Marshal.dump(message_block[0..2] + [@my_socket_path])
+      client.send(block,0)
       client.close
     rescue Errno::EADDRINUSE
       retry
@@ -170,17 +171,37 @@ module Toolshed
       catch :whole_block do
         loop do
           packet = client.recvfrom(@@block_size)[0]
-          if packet.empty?
+          if packet == ''
             throw :whole_block
           else
             block << packet
           end
         end
       end
-      return Marshal.load(block.join)
+      message_block =  Marshal.load(block.join)
+      return message_block
     rescue Errno::EADDRINUSE
       retry
     end
   end
+  
+  def recv_whole_block_perm
+      begin
+        client = @my_socket.accept; block = []
+        catch :whole_block do
+          loop do
+            packet = client.recvfrom(@@block_size)[0]
+            if packet == ''
+              throw :whole_block
+            else
+              block << packet
+            end
+          end
+        end
+        return Marshal.load(block.join)
+      rescue Errno::EADDRINUSE
+        retry
+      end
+    end
       
 end
