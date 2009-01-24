@@ -12,11 +12,12 @@ class Garden
       @init_message_block = nil; @seed_all_message_block = nil
       @harvest_queue = []; @waiting_rows = []; @message_block_queue = []
       @seeds = []; @sprouts = []; @crops = []; @id = 0
+      @private_sockets = []
     end
     
-    def parse_readable(readable)
+    def sprout_readable(readable)
       readable.each do |i_socket|
-        if i_socket == @my_socket
+        if i_socket == @my_socket || @private_sockets.include?(i_socket)
           add_readable(i_socket)
         elsif i_socket.path == @my_socket_path
           readable_main(i_socket)
@@ -26,7 +27,7 @@ class Garden
       end
     end
     
-    def parse_writable(writable)
+    def crop_writable(writable)
       writable.each do |o_socket|
         if @writer[:buffer][o_socket.to_s] == '' || @writer[:buffer][o_socket.to_s] == nil
           remove_writable(o_socket)
@@ -36,11 +37,12 @@ class Garden
       end
     end
     
-    def parse_message_blocks
-      temp_queue = Array.new(@message_block_queue)
-      @message_block_queue = []
-      until temp_queue.empty?
-        message_block = temp_queue.shift
+    def route_message_blocks
+			# puts "garden: #{@message_block_queue.inspect}"
+      # temp_queue = Array.new(@message_block_queue)
+      # @message_block_queue = []
+      until @message_block_queue.empty?
+        message_block = @message_block_queue.shift
         case message_block[0]
         when :seed
           place_seed_in_queue(message_block)
@@ -61,20 +63,53 @@ class Garden
           add_writable(message_block)
         end
       end
-      seed_if_row_available
     end
+
+		def seed_available_rows
+        catch :fill_rows do
+          loop do
+						throw :fill_rows if @waiting_rows.empty?
+            if @seed_all_message_block && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1]
+              row_socket_path = @waiting_rows.shift
+              unless @seed_all_message_block[4][:row_done].include?( row_socket_path )
+                add_writable([:seed,:all,@seed_all_message_block[2],row_socket_path])
+                @seed_all_message_block[4][:row_done] << row_socket_path
+              else
+                @waiting_rows << row_socket_path
+              end
+            elsif @init_message_block && @init_message_block[4][:row_done].size != @init_message_block[2]
+              row_socket_path = @waiting_rows.shift
+              unless @init_message_block[4][:row_done].include?( row_socket_path )
+                add_writable([:seed,:init,'init_status',row_socket_path])
+                @init_message_block[4][:row_done] << row_socket_path
+              else
+                @waiting_rows << row_socket_path
+              end
+            elsif ! @seeds.empty?
+              seed = @seeds.shift; @sprouts[seed[:id]] = seed
+              add_writable([:seed,:sprout,seed,@waiting_rows.shift])
+            elsif @close_message_block && ! @waiting_rows.empty?
+              add_writable([:seed,:quit,nil,@waiting_rows.shift])
+            else
+              throw :fill_rows
+            end               
+          end
+        end
+      end
      
      private
      
      def readable_main(i_socket)
        message_block = read_message_block(i_socket)
        @message_block_queue << message_block
+       @reader[:sockets].delete(i_socket) if @reader[:sockets].include?(i_socket)
      end
 
      def readable_private(i_socket)
        packet = read_raw(i_socket)
        if packet == ''
-         @message_block_queue << @reader[:buffer][i_socket.to_s].join
+         @message_block_queue << Marshal.load(@reader[:buffer][i_socket.to_s].join)
+         @reader[:sockets].delete(i_socket) if @reader[:sockets].include?(i_socket)
        else
          @reader[:buffer][i_socket.to_s] = [] if @reader[:buffer][i_socket.to_s].nil?
          @reader[:buffer][i_socket.to_s] << packet
@@ -205,37 +240,6 @@ class Garden
          end
        end
      end
-     
-     def seed_if_row_available
-        catch :fill_rows do
-          loop do
-            if @seed_all_message_block && ! @waiting_rows.empty? && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1]
-              row_socket_path = @waiting_rows.shift
-              unless @seed_all_message_block[4][:row_done].include?( row_socket_path )
-                add_writable([:seed,:all,@seed_all_message_block[2],row_socket_path])
-                @seed_all_message_block[4][:row_done] << row_socket_path
-              else
-                @waiting_rows << row_socket_path
-              end
-            elsif @init_message_block && ! @waiting_rows.empty? && @init_message_block[4][:row_done].size != @init_message_block[2]
-              row_socket_path = @waiting_rows.shift
-              unless @init_message_block[4][:row_done].include?( row_socket_path )
-                add_writable([:seed,:init,'init_status',row_socket_path])
-                @init_message_block[4][:row_done] << row_socket_path
-              else
-                @waiting_rows << row_socket_path
-              end
-            elsif ! @seeds.empty? && ! @waiting_rows.empty?
-              seed = @seeds.shift; @sprouts[seed[:id]] = seed
-              add_writable([:seed,:sprout,seed,@waiting_rows.shift])
-            elsif @close_message_block && ! @waiting_rows.empty?
-              add_writable([:seed,:quit,nil,@waiting_rows.shift])
-            else
-              throw :fill_rows
-            end               
-          end
-        end
-      end
      
   end
 end

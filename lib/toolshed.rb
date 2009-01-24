@@ -100,9 +100,7 @@ module Toolshed
   end
   
   def read_message_block(client)
-    message_block = recv_whole_block(client)
-    @reader[:sockets].delete(client) if @reader[:sockets].include?(client)
-    message_block
+    recv_whole_block(client)
   end
   
   def request_private_socket(role)
@@ -115,6 +113,7 @@ module Toolshed
      private_socket_path = private_path(@my_socket_path,client_pid)
      private_socket = UNIXServer.open(private_socket_path)
      @reader[:sockets] << private_socket
+     @private_sockets << private_socket
    end
   
   def private_path(garden_path,client_pid)
