@@ -52,7 +52,7 @@ class Garden
           t2 = Thread.new do
             loop do
               if $seed.nil?
-                message_block = socket_duplex([:row,:row,my_socket_path,@garden_path])
+                message_block = socket_duplex([:row,:row,@my_socket_path,@garden_path])
                 case message_block[1]
                 when :sprout
                   sprout(message_block)

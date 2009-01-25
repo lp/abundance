@@ -12,17 +12,14 @@ class Garden
       @init_message_block = nil; @seed_all_message_block = nil
       @harvest_queue = []; @waiting_rows = []; @message_block_queue = []
       @seeds = []; @sprouts = []; @crops = []; @id = 0
-      @private_sockets = []
     end
     
     def sprout_readable(readable)
       readable.each do |i_socket|
-        if i_socket == @my_socket || @private_sockets.include?(i_socket)
+        if i_socket == @my_socket
           add_readable(i_socket)
-        elsif i_socket.path == @my_socket_path
-          readable_main(i_socket)
         else
-          readable_private(i_socket)
+          readable_main(i_socket)
         end
       end
     end
@@ -38,9 +35,6 @@ class Garden
     end
     
     def route_message_blocks
-			# puts "garden: #{@message_block_queue.inspect}"
-      # temp_queue = Array.new(@message_block_queue)
-      # @message_block_queue = []
       until @message_block_queue.empty?
         message_block = @message_block_queue.shift
         case message_block[0]
@@ -54,8 +48,6 @@ class Garden
           report_growth(message_block)
         when :harvest
           harvest_some(message_block)
-        when :request_private
-          set_private_socket(message_block[2])
         when :close
           close_all(message_block)
         else
@@ -103,17 +95,6 @@ class Garden
        message_block = read_message_block(i_socket)
        @message_block_queue << message_block
        @reader[:sockets].delete(i_socket) if @reader[:sockets].include?(i_socket)
-     end
-
-     def readable_private(i_socket)
-       packet = read_raw(i_socket)
-       if packet == ''
-         @message_block_queue << Marshal.load(@reader[:buffer][i_socket.to_s].join)
-         @reader[:sockets].delete(i_socket) if @reader[:sockets].include?(i_socket)
-       else
-         @reader[:buffer][i_socket.to_s] = [] if @reader[:buffer][i_socket.to_s].nil?
-         @reader[:buffer][i_socket.to_s] << packet
-       end
      end
      
      def place_seed_in_queue(message_block)
