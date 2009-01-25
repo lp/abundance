@@ -41,7 +41,14 @@ class Gardener
     
     set_my_socket_as_a(:gardener,@garden.pid)
   end
-  
+
+	def garden_pid
+		@garden.pid
+	end
+	
+	def rows_pids
+  	@garden_rows.pids
+	end
   # The +init_status+ method for the Gardener instance allow to harvest an initialisation status message
   # that would have been set by the Abundance.init_status method, inside the Abundance.gardener's block. 
   # It returns an array of hash, one hash for each garden rows.
