@@ -37,6 +37,7 @@ class Garden
     def route_message_blocks
       until @message_block_queue.empty?
         message_block = @message_block_queue.shift
+
         case message_block[0]
         when :seed
           place_seed_in_queue(message_block)
@@ -54,6 +55,7 @@ class Garden
           message_block[2] = false
           add_writable(message_block)
         end
+
       end
     end
 
@@ -61,6 +63,7 @@ class Garden
         catch :fill_rows do
           loop do
 						throw :fill_rows if @waiting_rows.empty?
+						
             if @seed_all_message_block && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1]
               row_socket_path = @waiting_rows.shift
               unless @seed_all_message_block[4][:row_done].include?( row_socket_path )
@@ -69,6 +72,7 @@ class Garden
               else
                 @waiting_rows << row_socket_path
               end
+
             elsif @init_message_block && @init_message_block[4][:row_done].size != @init_message_block[2]
               row_socket_path = @waiting_rows.shift
               unless @init_message_block[4][:row_done].include?( row_socket_path )
@@ -77,14 +81,18 @@ class Garden
               else
                 @waiting_rows << row_socket_path
               end
+
             elsif ! @seeds.empty?
               seed = @seeds.shift; @sprouts[seed[:id]] = seed
               add_writable([:seed,:sprout,seed,@waiting_rows.shift])
+
             elsif @close_message_block && ! @waiting_rows.empty?
               add_writable([:seed,:quit,nil,@waiting_rows.shift])
+
             else
               throw :fill_rows
-            end               
+						end
+						               
           end
         end
       end
@@ -94,7 +102,7 @@ class Garden
      def readable_main(i_socket)
        message_block = read_message_block(i_socket)
        @message_block_queue << message_block
-       @reader[:sockets].delete(i_socket) if @reader[:sockets].include?(i_socket)
+       @reader[:sockets].delete(i_socket)
      end
      
      def place_seed_in_queue(message_block)
@@ -109,25 +117,33 @@ class Garden
      end
      
      def this_row_is_available(message_block)
+	
        if @close_message_block
-         message_block = [:row, :quit, nil, message_block[3]]
+				 message_block = [:row, :quit, nil, message_block[3]]
+				
        elsif @seed_all_message_block && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1] && ! @seed_all_message_block[4][:row_done].include?( message_block[3] )
          message_block = [:row, :all, @seed_all_message_block[2], message_block[3]]
          @seed_all_message_block[4][:row_done] << message_block[3]
+
        elsif @init_message_block && @init_message_block[4][:row_done].size != @init_message_block[2] && ! @init_message_block[4][:row_done].include?( message_block[3] )
          message_block = [:row, :init, 'init_status', message_block[3]]
          @init_message_block[4][:row_done] << message_block[3]
+
        elsif @seeds.empty?
          @waiting_rows << message_block[2]
          message_block = [:row, :wait, nil, message_block[3]]
+
        else
          seed = @seeds.shift; @sprouts[seed[:id]] = seed
          message_block = [:row, :sprout, seed, message_block[3]]
+
        end
+
        add_writable(message_block)
      end
      
      def save_crop_for(message_block)
+	
        case message_block[1]
        when :harvest
          @sprouts[message_block[2][:id]] = nil
@@ -139,12 +155,14 @@ class Garden
            add_writable(message_block[0..1]+[@crops.compact,@full_crop_message_block[3]])
            @crops.clear; @full_crop_message_block = nil
          end
+
        when :seed_all
          @seed_all_message_block[4][:crops] << message_block[2]
          if @seed_all_message_block[4][:crops].size == @seed_all_message_block[1]
            @seed_all_message_block[2] = @seed_all_message_block[4][:crops]; @seed_all_message_block[4] = nil
            add_writable(@seed_all_message_block.compact); @seed_all_message_block = nil
          end
+
        when :init
          @init_message_block[4][:crops] << message_block[2]
          if @init_message_block[4][:crops].size == @init_message_block[2]
@@ -152,9 +170,11 @@ class Garden
            add_writable(@init_message_block.compact); @init_message_block = nil
          end
        end
+
      end
      
      def report_growth(message_block)
+	
        case message_block[1]
        when :progress
          value = @crops.size.to_f / (@crops.size + @sprouts.compact.size + @seeds.size)
@@ -169,10 +189,12 @@ class Garden
        else
          message_block[2] = false
        end
+
        add_writable(message_block)
      end
      
      def harvest_some(message_block)
+	
        case message_block[1]
        when :one
          unless message_block[2].nil?
@@ -206,6 +228,7 @@ class Garden
        else
          message_block[2] = false; add_writable(message_block)
        end
+
      end
            
      def close_all(message_block)
