@@ -240,7 +240,7 @@ class Garden
          if @close_message_block[2].empty?
            @close_message_block[2] = {:seeds => @seeds, :sprouts => @sprouts.compact, :crops => @crops.compact}
            socket_send(@close_message_block)
-           exit
+           Kernel::exit
          end
        end
      end

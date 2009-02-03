@@ -28,7 +28,7 @@ class Garden
       
       def quit
         socket_send([:close,:row,Process.pid,@garden_path])
-        exit
+        Kernel::exit
       end
       
       def sprout(message_block)
