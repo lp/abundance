@@ -92,6 +92,8 @@ class Gardener
   # === Parameter
   # The parameter given as a symbol specifies the level of growth report you wish to get:
   # * :progress = return actual progress status, scaled between 0.00 and 1.00
+	# * :empty = return true when no seeds are in garden
+	# * :finished = return true when no seeds are waiting or processing
   # * :seed = return total seeds waiting to be processed
   # * :sprout = return total seeds actually in process
   # * :crop = return total seeds for which process has completed
