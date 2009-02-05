@@ -50,6 +50,7 @@ class TestHighAPI < Test::Unit::TestCase
     assert_instance_of(Gardener,@g)
     
     check_init
+		check_empty(true); check_finished(true)
     check_false     
     check_seed_harvest      # leaves no crops in the queue
     check_full_harvest         # also leaves no crops in the queue
@@ -69,6 +70,14 @@ class TestHighAPI < Test::Unit::TestCase
       assert_equal(init[:message],init[:pid],"init :pid should be the row pid, it isn't")
     end
   end
+
+	def check_empty(bool)
+		assert_equal(bool,@g.growth(:empty),"growth :empty does not return #{bool.to_s}")
+	end
+	
+	def check_finished(bool)
+		assert_equal(bool,@g.growth(:finished),"growth :finished does not return #{bool.to_s}")
+	end
   
   def check_false
     id = @g.seed(nil)
@@ -124,7 +133,7 @@ class TestHighAPI < Test::Unit::TestCase
     25.times do |num|
       queue_items[num] = @g.seed(num)
     end
-    
+    check_empty(false); check_finished(false)
     all = @g.harvest(:all)
     assert_kind_of(Hash,all, "the harvest :all method doesn't return a Hash as supposed")
     assert_equal(25,all[:seeds].size + all[:sprouts].size + all[:crops].size, "the harvest :all method returns a total of items not coherent with amount of seeded items")
