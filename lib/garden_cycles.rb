@@ -185,7 +185,7 @@ class Garden
        when :sprout
          message_block[2] = @sprouts.compact.size
        when :crop
-         message_block[2] = @crops.size
+         message_block[2] = @crops.compact.size
        else
          message_block[2] = false
        end
