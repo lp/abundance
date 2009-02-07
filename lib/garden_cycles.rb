@@ -177,7 +177,7 @@ class Garden
 	
        case message_block[1]
        when :progress
-         value = @crops.size.to_f / (@crops.compact.size + @sprouts.compact.size + @seeds.size)
+         value = @crops.compact.size.to_f / (@crops.compact.size + @sprouts.compact.size + @seeds.size)
          value = 1 if value.nan?; progress = sprintf( "%.2f", value)
          message_block[2] = progress
 			 when :finished
