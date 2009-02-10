@@ -37,8 +37,10 @@
 # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
 # 
 # :title:Abundance
+require 'logger'
 
 class Abundance
+	@@log_level = Logger::WARN; @@log_output = STDERR
   require 'garden'
   require 'gardener'
   require 'seed'
@@ -79,7 +81,8 @@ class Abundance
   #  gardener.close
   
   def Abundance.gardener(options={:wheelbarrow => 8192, :rows => 2, :init_timeout => 2},&gardener_block)
-    return Gardener.new(options,gardener_block)
+    Abundance.init_logger; $log_abundance.debug("Abundance.gardener") {"options: #{options.inspect}"}
+		return Gardener.new(options,gardener_block)
   end
   
   # The +grow+ class method needs to be used inside the gardener invocation.
@@ -87,7 +90,9 @@ class Abundance
   
   def Abundance.grow(&grow_block)
     loop do
+			$log_abundance.debug("Abundance.grow") {"enter loop"}
       unless $seed.nil? || $seed.include?(:message)
+				$log_abundance.debug("Abundance.grow") {"call grow block for seed: #{$seed.inspect}"}
         grow_block.call(Seed.new)
       end
       Thread.stop
@@ -102,8 +107,36 @@ class Abundance
   # === Example
   #   Abundance.init_status(true,'Initialisation Successfull!!!')
   def Abundance.init_status(success,message)
+		$log_abundance.debug("Abundance.init_status") { "success: #{success.inspect} message: #{message.inspect}"}
     $init = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
   end
+
+	def Abundance::log_output=(out)
+		@@log_output = out
+	end
+	
+	def Abundance::log_level=(level)
+		level.to_sym unless level.is_a?(Symbol)
+		@@log_level = case level
+		when :debug
+			Logger::DEBUG
+		when :info
+			Logger::INFO
+		when :warn
+			Logger::WARN
+		when :error
+			Logger::ERROR
+		when :fatal
+			Logger::FATAL
+		end
+	end
+	
+	def Abundance.init_logger
+		unless $log_abundance 
+			$log_abundance = Logger.new(@@log_output)
+			$log_abundance.level = @@log_level
+		end
+	end
   
 end
 
