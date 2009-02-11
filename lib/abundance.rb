@@ -110,31 +110,11 @@ class Abundance
 		$log_abundance.debug("Abundance.init_status") { "success: #{success.inspect} message: #{message.inspect}"}
     $init = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
   end
-
-	def Abundance::log_output=(out)
-		@@log_output = out
-	end
-	
-	def Abundance::log_level=(level)
-		level.to_sym unless level.is_a?(Symbol)
-		@@log_level = case level
-		when :debug
-			Logger::DEBUG
-		when :info
-			Logger::INFO
-		when :warn
-			Logger::WARN
-		when :error
-			Logger::ERROR
-		when :fatal
-			Logger::FATAL
-		end
-	end
 	
 	def Abundance.init_logger
 		unless $log_abundance 
-			$log_abundance = Logger.new(@@log_output)
-			$log_abundance.level = @@log_level
+			$log_abundance = Logger.new($logger_args[:log_output])
+			$log_abundance.level = $logger_args[:log_level]
 		end
 	end
   
