@@ -1,35 +1,53 @@
 require 'logger'
-class LogEngine < Logger
+class GlobaLog < Logger
+	$logger_args ||= Hash.new
 	
-	def LogEngine.setup
-		if $logger_args[:log_level].is_a?(Symbol)
-			$logger_args[:log_level] = case $logger_args[:log_level]
-			when :debug
-				DEBUG
-			when :info
-				INFO
-			when :warn
-				WARN
-			when :error
-				ERROR
-			when :fatal
-				FATAL
-			else
-				UNKNOWN
-			end
-		end
-		log = self.new($logger_args[:log_output])
-		log.level = $logger_args[:log_level]
+	def GlobaLog.setup(def_out,def_level)
+		Args.are(:log_output => def_out, :log_level => def_level)
+		log = self.new(Args::log_output)
+		log.level = Args::log_level
 		return log
 	end
 	
-	class Arguments < Hash
+	module Args
+		
+		def Args.are(args)
+			$logger_args[:log_level] ||= args[:log_level].to_sym
+			$logger_args[:log_output] ||= args[:log_output]
+		end
+		
+		def Args::log_output
+			$logger_args[:log_output]
+		end
+
+		def Args::log_level
+			if $logger_args[:log_level].is_a?(Symbol)
+				$logger_args[:log_level] = case $logger_args[:log_level]
+				when :debug
+					Logger::DEBUG
+				when :info
+					Logger::INFO
+				when :warn
+					Logger::WARN
+				when :error
+					Logger::ERROR
+				when :fatal
+					Logger::FATAL
+				else
+					Logger::UNKNOWN
+				end
+			end
+		end
+		
+	end
+	
+	class OptHijacker < Hash
 		require 'optparse'
 		
 		def initialize
 			super()
-			self[:log_level] = :info
-			self[:log_output] = STDERR
+			self[:log_level] = nil
+			self[:log_output] = nil
 			opts = OptionParser.new do |opts|
 				opts.on('-L','--log-level [STRING]','sets the Test Log Level') do |string|
 					self[:log_level] = string.to_sym
@@ -38,7 +56,7 @@ class LogEngine < Logger
 					self[:log_output] = io
 				end
 			end
-			opts.parse!($logger_argv)
+			opts.parse!($keep_argv)
 		end
 
 		def self.keep_wanted_argv
@@ -58,11 +76,11 @@ class LogEngine < Logger
 					end
 				end
 			end
-			return keep
+			$keep_argv ||= keep
 		end
 
-		$logger_argv ||= self.keep_wanted_argv
-		$logger_args ||= self.new
+		self.keep_wanted_argv
+		Args.are(self.new)
 
 	end
 	
