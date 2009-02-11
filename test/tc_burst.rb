@@ -18,7 +18,7 @@ class TestBurst < Test::Unit::TestCase
   
   
   def setup
-		@log_test = LogEngine.setup
+		@log_test = GlobaLog.setup(STDERR,:info)
     @g = Abundance.gardener(:wheelbarrow => 124, :rows => 8, :init_timeout => 2) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|

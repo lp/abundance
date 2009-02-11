@@ -6,7 +6,7 @@ require 'abundance'
 class TestMultiGardener < Test::Unit::TestCase
 	
 	def setup
-		@log_test = LogEngine.setup
+		@log_test = GlobaLog.setup(STDERR,:info)
 	end
   
   def test_two_gardeners

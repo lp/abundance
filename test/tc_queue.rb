@@ -6,7 +6,7 @@ require 'abundance'
 class TestQueue < Test::Unit::TestCase
 	
 	def setup
-		@log_test = LogEngine.setup
+		@log_test = GlobaLog.setup(STDERR,:info)
 		@rows = 4
 		set_gardener	
 	end

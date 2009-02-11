@@ -6,7 +6,7 @@ require 'abundance'
 class TestHighAPI < Test::Unit::TestCase
 	
 	def setup
-		@log_test = LogEngine.setup
+		@log_test = GlobaLog.setup(STDERR,:info)
 	end
   
   def test_1_abundance_monothread
