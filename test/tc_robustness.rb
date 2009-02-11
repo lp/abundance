@@ -1,10 +1,16 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
+require 'test/test_helpers'
 require 'test/unit'
 require 'abundance'
 
 class TestRobustness < Test::Unit::TestCase
+	
+	def setup
+		@log_test = LogEngine.setup
+	end
   
   def test_abundance_robust
+		@log_test.info("Test Robustness") {"test abundance robust..."}
     @seed_size = 124
     @rows = 8
     @init_timeout = 3

@@ -1,12 +1,12 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
-require 'test/test_helpers'; include LogHelper
+require 'test/test_helpers'
 require 'test/unit'
 require 'abundance'
 
 class TestBurst < Test::Unit::TestCase
   
   def test_burst1
-		@log_test.info("test Burst") {"test burst 1..."}
+		@log_test.info("Test Burst") {"test burst1..."}
     check_init
     seed_1000x10
     check_init
@@ -18,7 +18,7 @@ class TestBurst < Test::Unit::TestCase
   
   
   def setup
-		setup_logger
+		@log_test = LogEngine.setup
     @g = Abundance.gardener(:wheelbarrow => 124, :rows => 8, :init_timeout => 2) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|

@@ -1,10 +1,16 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
+require 'test/test_helpers'
 require 'test/unit'
 require 'abundance'
 
 class TestMultiGardener < Test::Unit::TestCase
+	
+	def setup
+		@log_test = LogEngine.setup
+	end
   
   def test_two_gardeners
+		@log_test.info("Test Multi Gardener") {"test two gardeners..."}
     @rows = 2
     set_gardener1
     set_gardener2

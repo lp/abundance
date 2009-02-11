@@ -1,37 +1,37 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
-require 'test/test_helpers'; include LogHelper
+require 'test/test_helpers'
 require 'test/unit'
 require 'abundance'
 
 class TestHighAPI < Test::Unit::TestCase
 	
 	def setup
-		setup_logger
+		@log_test = LogEngine.setup
 	end
   
   def test_1_abundance_monothread
-		@log_test.info("test High API") {"testing 1 thread..."}
+		@log_test.info("Test High API") {"testing 1 thread..."}
     @rows = 1
     set_gardener
     reality_check
   end
   
   def test_2_abundance_quadthread
-		@log_test.info("test High API") {"testing 4 thread..."}
+		@log_test.info("Test High API") {"testing 4 thread..."}
     @rows = 4
     set_gardener
     reality_check
   end
   
   def test_3_abundance_hexthread
-		@log_test.info("test High API") {"testing 16 thread..."}
+		@log_test.info("Test High API") {"testing 16 thread..."}
     @rows = 16
     set_gardener
     reality_check
   end
   
   def teardown
-		@log_test.info("test High API") {"tearing down..."}
+		@log_test.info("Test High API") {"tearing down..."}
     final = @g.close
     assert_kind_of(Hash,final,"close method didn't return a Hash, it returned: #{final.inspect}")
     assert_equal(3,final.size,"Hash returned on close has wrong size, here it is: #{final.inspect}")

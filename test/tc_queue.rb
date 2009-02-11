@@ -1,15 +1,18 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
+require 'test/test_helpers'
 require 'test/unit'
 require 'abundance'
 
 class TestQueue < Test::Unit::TestCase
 	
 	def setup
+		@log_test = LogEngine.setup
 		@rows = 4
 		set_gardener	
 	end
 	
 	def test_queue
+		@log_test.info("Test Queue") {"test queue..."}
 		check_empty(true)
 		check_finished(true)
 		seed_lots
