@@ -9,6 +9,14 @@ class GlobaLog < Logger
 		return log
 	end
 	
+	def Globalog::output
+		Args::log_output
+	end
+	
+	def Globalog::level
+		Args::log_level
+	end
+	
 	module Args
 		
 		def Args.are(args)
