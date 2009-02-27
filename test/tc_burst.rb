@@ -1,7 +1,7 @@
-$:.unshift File.join(File.dirname(__FILE__), "..", "lib")
-require 'test/test_helpers'
+require 'rubygems'
+require 'globalog'
 require 'test/unit'
-require 'abundance'
+require File.join( File.dirname( File.expand_path(__FILE__)), '..', 'lib', 'abundance')
 
 class TestBurst < Test::Unit::TestCase
   
@@ -18,7 +18,7 @@ class TestBurst < Test::Unit::TestCase
   
   
   def setup
-		@log_test = GlobaLog.setup(STDERR,:info)
+		@log_test = GlobaLog.logger(STDERR,:info)
     @g = Abundance.gardener(:wheelbarrow => 124, :rows => 8, :init_timeout => 2) do
       Abundance.init_status(true,Process.pid)
       Abundance.grow do |seed|

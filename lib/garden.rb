@@ -15,10 +15,13 @@
 # :title:Garden
 
 class Garden
-  require 'rows'
-  require 'garden_cycles'
+	require File.join( File.dirname( File.expand_path(__FILE__)), 'rows')
+	# require 'rows'
+	require File.join( File.dirname( File.expand_path(__FILE__)), 'garden_cycles')
+	# require 'garden_cycles'
   include Cycles
-  require 'toolshed'
+	require File.join( File.dirname( File.expand_path(__FILE__)), 'toolshed')
+	# require 'toolshed'
   include Toolshed
   
   attr_reader :pid
@@ -40,7 +43,7 @@ class Garden
       loop do
 				route_message_blocks
 				seed_available_rows
-				
+				$log_abundance.debug('garden') {"select reader: #{@reader[:sockets].inspect} writer: #{@writer[:sockets]}"}
         ready = select(@reader[:sockets],@writer[:sockets],nil,10)
         unless ready.nil?
           readable, writable = ready[0..1]

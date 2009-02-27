@@ -9,11 +9,11 @@ class GlobaLog < Logger
 		return log
 	end
 	
-	def Globalog::output
+	def GlobaLog::output
 		Args::log_output
 	end
 	
-	def Globalog::level
+	def GlobaLog::level
 		Args::log_level
 	end
 	
@@ -30,20 +30,24 @@ class GlobaLog < Logger
 
 		def Args::log_level
 			if $logger_args[:log_level].is_a?(Symbol)
-				$logger_args[:log_level] = case $logger_args[:log_level]
-				when :debug
-					Logger::DEBUG
-				when :info
-					Logger::INFO
-				when :warn
-					Logger::WARN
-				when :error
-					Logger::ERROR
-				when :fatal
-					Logger::FATAL
-				else
-					Logger::UNKNOWN
-				end
+				$logger_args[:log_level] = self.sym_to_level($logger_args[:log_level])
+			end
+		end
+		
+		def Args.sym_to_level(sym)
+			case sym
+			when :debug
+				return Logger::DEBUG
+			when :info
+				return Logger::INFO
+			when :warn
+				return Logger::WARN
+			when :error
+				return Logger::ERROR
+			when :fatal
+				return Logger::FATAL
+			else
+				return Logger::UNKNOWN
 			end
 		end
 		

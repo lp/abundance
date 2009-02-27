@@ -20,6 +20,7 @@ class Seed
   # === Example
   #  system "#{seed.sprout}\n"
   def sprout
+		$log_abundance.debug('seed') {"sprout seed: #{$seed.inspect}"}
     return $seed[:seed]
   end
   

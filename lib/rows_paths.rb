@@ -9,10 +9,12 @@ class Garden
     module Paths
       
       def all(message_block)
+				$log_abundance.debug("Rows::Paths") {"all"}
         $seed = {:id => Process.pid, :seed => message_block[2], :all => true}
       end
       
       def crop
+				$log_abundance.debug("Rows::Paths") {"crop, seed: #{$seed.inspect}"}
         if $seed[:all]
           socket_send([:crop,:seed_all,$seed,@garden_path])
         else
@@ -22,16 +24,19 @@ class Garden
       end
       
       def init
+				$log_abundance.debug("Rows::Paths") {"init"}
         $init = {:seed => 'init_status', :success => false, :message => 'No Init Message', :id => Process.pid} if $init.nil?
         socket_send([:crop,:init,$init,@garden_path])
       end
       
       def quit
+				$log_abundance.debug("Rows::Paths") {"quit"}
         socket_send([:close,:row,Process.pid,@garden_path])
-        Kernel::exit
+        Thread::exit
       end
       
       def sprout(message_block)
+				$log_abundance.debug("Rows::Paths") {"sprout"}
         $seed = message_block[2]
       end
       

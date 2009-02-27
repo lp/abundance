@@ -15,6 +15,7 @@ class Garden
     end
     
     def sprout_readable(readable)
+			$log_abundance.debug('Garden::Cycles') {"sprout_readable"}
       readable.each do |i_socket|
         if i_socket == @my_socket
           add_readable(i_socket)
@@ -25,6 +26,7 @@ class Garden
     end
     
     def crop_writable(writable)
+			$log_abundance.debug('Garden::Cycles') {"crop_writable"}
       writable.each do |o_socket|
         if @writer[:buffer][o_socket.to_s] == '' || @writer[:buffer][o_socket.to_s] == nil
           remove_writable(o_socket)
@@ -35,6 +37,7 @@ class Garden
     end
     
     def route_message_blocks
+			$log_abundance.debug('Garden::Cycles') {"route_message_blocks"}
       until @message_block_queue.empty?
         message_block = @message_block_queue.shift
 
@@ -60,6 +63,7 @@ class Garden
     end
 
 		def seed_available_rows
+				$log_abundance.debug('Garden::Cycles') {"seed_available_rows"}
         catch :fill_rows do
           loop do
 						throw :fill_rows if @waiting_rows.empty?

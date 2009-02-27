@@ -1,12 +1,12 @@
-$:.unshift File.join(File.dirname(__FILE__), "..", "lib")
-require 'test/test_helpers'
+require 'rubygems'
+require 'globalog'
 require 'test/unit'
-require 'abundance'
+require File.join( File.dirname( File.expand_path(__FILE__)), '..', 'lib', 'abundance')
 
 class TestMultiGardener < Test::Unit::TestCase
 	
 	def setup
-		@log_test = GlobaLog.setup(STDERR,:info)
+		@log_test = GlobaLog.logger(STDERR,:info)
 	end
   
   def test_two_gardeners
