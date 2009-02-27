@@ -20,9 +20,11 @@ class Garden
   # :title:Rows
   
   class Rows
-    require 'rows_paths'
+		require File.join( File.dirname( File.expand_path(__FILE__)), 'rows_paths')
+		# require 'rows_paths'
     include Paths
-    require 'toolshed'
+		require File.join( File.dirname( File.expand_path(__FILE__)), 'toolshed')
+		# require 'toolshed'
     include Toolshed
     attr_reader :pids
     
@@ -45,41 +47,44 @@ class Garden
       rows.times do
         @pids << fork do
           set_my_socket_as_a(:row,garden_pid)
-          t1 = Thread.new do
-            gardener_block.call
-          end
 
           t2 = Thread.new do
-            loop do
-              if $seed.nil?
-                message_block = socket_duplex([:row,:row,@my_socket_path,@garden_path])
-                case message_block[1]
-                when :sprout
-                  sprout(message_block)
-                when :all
-                  all(message_block)
-                when :wait
-                  message_block = socket_recv
-                  case message_block[1]
-                  when :sprout
-                    sprout(message_block)
-                  when :all
-                    all(message_block)
-                  when :init
-                    init
-                  when :quit
-                    quit
-                  end
-                when :init
-                  init
-                when :quit
-                  quit
-                end
-              elsif ! $seed[:success].nil?
-                crop
-              else
-                t1.run
-              end
+						t1 = Thread.new do
+	            gardener_block.call
+	          end
+						
+						loop do
+              if t1.stop?
+								if $seed.nil?
+	                message_block = socket_duplex([:row,:row,@my_socket_path,@garden_path])
+	                case message_block[1]
+	                when :sprout
+	                  sprout(message_block)
+	                when :all
+	                  all(message_block)
+	                when :wait
+	                  message_block = socket_recv
+	                  case message_block[1]
+	                  when :sprout
+	                    sprout(message_block)
+	                  when :all
+	                    all(message_block)
+	                  when :init
+	                    init
+	                  when :quit
+	                    quit
+	                  end
+	                when :init
+	                  init
+	                when :quit
+	                  quit
+	                end
+	              elsif ! $seed[:success].nil?
+	                crop
+	              else
+	                t1.run
+	              end
+							end
             end
           end
           t2.join
