@@ -65,11 +65,14 @@ class Garden
 		def seed_available_rows
 				$log_abundance.debug('Garden::Cycles') {"seed_available_rows"}
         catch :fill_rows do
+					looped = 0
           loop do
-						throw :fill_rows if @waiting_rows.empty?
-						
+						looped += 1
+						throw :fill_rows if @waiting_rows.empty? || looped > 8
+						$log_abundance.debug('Garden::Cycles') {"seed_available_rows: waiting_rows: #{@waiting_rows.inspect}"}
             if @seed_all_message_block && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1]
-              row_socket_path = @waiting_rows.shift
+              $log_abundance.debug('Garden::Cycles') {"seed_available_rows: all_message_block #{@seed_all_message_block.inspect}"}
+							row_socket_path = @waiting_rows.shift
               unless @seed_all_message_block[4][:row_done].include?( row_socket_path )
                 add_writable([:seed,:all,@seed_all_message_block[2],row_socket_path])
                 @seed_all_message_block[4][:row_done] << row_socket_path
@@ -78,7 +81,8 @@ class Garden
               end
 
             elsif @init_message_block && @init_message_block[4][:row_done].size != @init_message_block[2]
-              row_socket_path = @waiting_rows.shift
+              $log_abundance.debug('Garden::Cycles') {"seed_available_rows: init_message_block #{@init_message_block.inspect}"}
+							row_socket_path = @waiting_rows.shift
               unless @init_message_block[4][:row_done].include?( row_socket_path )
                 add_writable([:seed,:init,'init_status',row_socket_path])
                 @init_message_block[4][:row_done] << row_socket_path
@@ -87,13 +91,16 @@ class Garden
               end
 
             elsif ! @seeds.empty?
+							$log_abundance.debug('Garden::Cycles') {"seed_available_rows: ! seeds.empty? #{@seeds.inspect}"}
               seed = @seeds.shift; @sprouts[seed[:id]] = seed
               add_writable([:seed,:sprout,seed,@waiting_rows.shift])
 
             elsif @close_message_block && ! @waiting_rows.empty?
+							$log_abundance.debug('Garden::Cycles') {"seed_available_rows: close_message_block: #{@close_message_block.inspect}"}
               add_writable([:seed,:quit,nil,@waiting_rows.shift])
 
             else
+							$log_abundance.debug('Garden::Cycles') {"seed_available_rows: else"}
               throw :fill_rows
 						end
 						               
