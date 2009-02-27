@@ -51,7 +51,7 @@ class Garden
 	            gardener_block.call
 	          end
 						
-						loop do
+						until nil
               if t1.stop?
 								if $seed.nil?
 	                message_block = socket_duplex([:row,:row,@my_socket_path,@garden_path])

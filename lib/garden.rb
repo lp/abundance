@@ -37,7 +37,7 @@ class Garden
       set_my_containers
       set_my_socket_as_a(:garden)
       
-      loop do
+      until nil
 				route_message_blocks
 				seed_available_rows
 				$log_abundance.debug('garden') {"select reader: #{@reader[:sockets].inspect} writer: #{@writer[:sockets]}"}

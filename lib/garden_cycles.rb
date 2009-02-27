@@ -66,9 +66,8 @@ class Garden
 				$log_abundance.debug('Garden::Cycles') {"seed_available_rows"}
         catch :fill_rows do
 					looped = 0
-          loop do
-						looped += 1
-						throw :fill_rows if @waiting_rows.empty? || looped > 8
+          while (looped+=1) < 9
+						throw :fill_rows if @waiting_rows.empty?
 						$log_abundance.debug('Garden::Cycles') {"seed_available_rows: waiting_rows: #{@waiting_rows.inspect}"}
             if @seed_all_message_block && @seed_all_message_block[4][:row_done].size != @seed_all_message_block[1]
               $log_abundance.debug('Garden::Cycles') {"seed_available_rows: all_message_block #{@seed_all_message_block.inspect}"}

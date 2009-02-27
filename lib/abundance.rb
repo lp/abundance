@@ -89,7 +89,7 @@ class Abundance
   # A seed instance is given each time, acting as getter/setter for your queued seed commands
   
   def Abundance.grow(&grow_block)
-    loop do
+    until nil
 			$log_abundance.debug("Abundance.grow") {"enter loop"}
       unless $seed.nil? || $seed.include?(:message)
 				$log_abundance.debug("Abundance.grow") {"call grow block for seed: #{$seed.inspect}"}
