@@ -41,13 +41,9 @@ require 'globalog'
 $log_abundance = GlobaLog.logger(STDERR,:warn)
 
 class Abundance
-	# @@log_level = Logger::WARN; @@log_output = STDERR
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'garden')
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'gardener')
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'seed')
-	# require 'garden'
-	# require 'gardener'
-	# require 'seed'
   
   # The +gardener+ class method initializes a gardener instance
   # with its garden supplied as a block.  The invocation block must include
@@ -85,7 +81,6 @@ class Abundance
   #  gardener.close
   
   def Abundance.gardener(options={:wheelbarrow => 8192, :rows => 2, :init_timeout => 2},&gardener_block)
-    # Abundance.init_logger
 		$log_abundance.debug("Abundance.gardener") {"options: #{options.inspect}"}
 		return Gardener.new(options,gardener_block)
   end
@@ -115,13 +110,6 @@ class Abundance
 		$log_abundance.debug("Abundance.init_status") { "success: #{success.inspect} message: #{message.inspect}"}
     $init = {:id => Process.pid, :seed => 'init_status', :success => success, :message => message}
   end
-	
-	# def Abundance.init_logger
-	# 		unless $log_abundance 
-	# 			$log_abundance = Logger.new($logger_args[:log_output])
-	# 			$log_abundance.level = $logger_args[:log_level]
-	# 		end
-	# 	end
   
 end
 

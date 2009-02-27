@@ -21,10 +21,8 @@ class Garden
   
   class Rows
 		require File.join( File.dirname( File.expand_path(__FILE__)), 'rows_paths')
-		# require 'rows_paths'
     include Paths
 		require File.join( File.dirname( File.expand_path(__FILE__)), 'toolshed')
-		# require 'toolshed'
     include Toolshed
     attr_reader :pids
     

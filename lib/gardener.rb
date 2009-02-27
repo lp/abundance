@@ -17,7 +17,6 @@
 
 class Gardener
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'toolshed')
-	# require 'toolshed'
   include Toolshed
   
   # The +new+ class method initializes the class.
