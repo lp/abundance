@@ -6,6 +6,10 @@ class Garden
   # Copyright:: 2008 Louis-Philippe Perron - Released under the terms of the MIT license
   # :title:Cycles
   module Cycles
+		require 'thread'
+		class Mutex
+			alias sync synchronize
+		end
     
     def set_my_containers
       @close_message_block = nil; @full_crop_message_block = nil
