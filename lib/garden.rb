@@ -15,6 +15,10 @@
 # :title:Garden
 
 class Garden
+	require 'thread'
+	class Mutex
+		alias sync synchronize
+	end
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'rows')
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'garden_cycles')
   include Cycles
@@ -37,18 +41,33 @@ class Garden
       set_my_containers
       set_my_socket_as_a(:garden)
       
-      until nil
-				route_message_blocks
-				seed_available_rows
-				$log_abundance.debug('garden') {"select reader: #{@reader[:sockets].inspect} writer: #{@writer[:sockets]}"}
-        ready = select(@reader[:sockets],@writer[:sockets],nil,10)
-        unless ready.nil?
-          readable, writable = ready[0..1]
+      main = Thread.new do
+				t1 = Thread.new do
+					until nil
+						route_message_blocks
+						Thread.stop
+					end
+				end
+				t2 = Thread.new do
+					until nil
+						seed_available_rows
+						Thread.stop
+					end
+				end
+				tg = ThreadGroup.new; tg.add(t1); tg.add(t2)
+				
+				until nil
+					$log_abundance.debug('garden') {"select reader: #{@reader[:sockets].inspect} writer: #{@writer[:sockets]}"}
+	        ready = select(@reader[:sockets],@writer[:sockets],nil,5)
+	        unless ready.nil?
+	          readable, writable = ready[0..1]
 
-          crop_writable(writable) if writable
-          sprout_readable(readable) if readable
-        end
-      end
+	          crop_writable(writable) if writable
+	          sprout_readable(readable) if readable
+	        end
+					tg.list.each { |t| t.wakeup }
+				end
+      end.join
     end
   end
 
