@@ -15,10 +15,6 @@
 # :title:Garden
 
 class Garden
-	require 'thread'
-	class Mutex
-		alias sync synchronize
-	end
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'rows')
 	require File.join( File.dirname( File.expand_path(__FILE__)), 'garden_cycles')
   include Cycles
