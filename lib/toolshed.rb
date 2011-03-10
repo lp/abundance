@@ -11,7 +11,6 @@
 # :title:Toolshed
 
 module Toolshed
-  require 'ftools'
   require 'socket'
   SOCKET_ROOT = '/tmp/abundance/'
   Dir.mkdir(SOCKET_ROOT) unless File.exist?(SOCKET_ROOT)
@@ -110,7 +109,7 @@ module Toolshed
   # === Parameters
   # * _socket_name_ = the socket file name
   def socket_path(socket_name)
-    File.catname(socket_name,SOCKET_ROOT)
+    File.expand_path(socket_name,SOCKET_ROOT)
   end
   
   # The +set_my_socket+ method stores a UNIXServer socket inside @my_socket instance variable and also stores this socket path inside @my_socket_path.
